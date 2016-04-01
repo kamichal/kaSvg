@@ -8,7 +8,12 @@ This module contains all the classes required to easily create an xml
 document containing svg diagrams.
 
 '''
+import random
 
+def _randomID():
+    s = 'abcdefghijklmnopqrstuvwxyz'
+    s += s.upper() + '1234567890' + '_' * 30
+    return 'id_' + ''.join(random.choice(s) for _ in xrange(10))
 
 class XmlElement(object):
     '''Prototype from which all the xml elements are derived.
@@ -21,23 +26,24 @@ class XmlElement(object):
         self.tag = tag
         self.prefix = ""
         self.sub_elements = []
-        if attributes is not None:
-            self.attributes = {}
-            for attKey in attributes.keys():
-                fixattr = attKey.replace('_', '-').lower()
-                self.attributes[fixattr] = attributes[attKey]
+        self.attributes = {}
+        if attributes:
+            if len(attributes) == 1 and attributes["dd"]:
+                if isinstance(attributes["dd"], dict):
+                    attributes = attributes["dd"]
+            for key in attributes:
+                fixattr = key.replace('_', '-').lower()
+                self.attributes[fixattr] = attributes[key]
                 '''lower case is needed for converting 'Class'
                 (class is forbiden in such use)
                 you pass stroke_width=0.2 and it's being converted to
                 stroke-widt=0.2'''
-        else:
-            self.attributes = {}
 
     def addAttr(self, **attributes):
-        if attributes is not None:
-            for attKey in attributes.keys():
-                fixattr = attKey.replace('_', '-').lower()
-                self.attributes[fixattr] = attributes[attKey]
+        if attributes:
+            for key in attributes:
+                fixattr = key.replace('_', '-').lower()
+                self.attributes[fixattr] = attributes[key]
 
     def __repr__(self):
         return self.indRepr(0)
@@ -70,7 +76,6 @@ class XmlElement(object):
             render.append("/>\n")
 
         return ''.join(render)
-
 
 def indentStr(level):
     ''' Global function that returns indentation string'''
