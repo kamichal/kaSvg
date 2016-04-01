@@ -31,7 +31,7 @@ class XmlElement(object):
         self.sub_elements = []
         self.attributes = {}
         if attributes:
-            if len(attributes) == 1 and attributes["dd"]:
+            if len(attributes) == 1 and "dd" in attributes:
                 if isinstance(attributes["dd"], dict):
                     attributes = attributes["dd"]
             for key in attributes:
