@@ -5,16 +5,19 @@ Created on 1 kwi 2016
 '''
 
 
+import sys
+from os import path as op
+
 from lxml import etree
 from formencode.doctest_xml_compare import xml_compare
+from tempfile import gettempdir
 
 from kaSvg import SvgWindow, SvgDefinitionsContainer, XmlElement
-import sys
 
 def _cmpXml(got, ref):
-    print " -"*5 + "GOT" + "- "*20
+    print "- "*5 + "GOT:" + " -"*20
     print got
-    print " -"*28
+    print "- "*28
     tree1 = etree.fromstring(str(got))
     tree2 = etree.fromstring(str(ref))
     assert xml_compare(tree1, tree2, lambda x: sys.stdout.write(x + "\n"))
@@ -113,6 +116,7 @@ def test_xml_by_dict_or_kwargs():
     _cmpXml(k, '<circle cy="30" cx="0" r="28" fill="red"/>')
     _cmpXml(k, u)
 
+
 def test_definitions_and_usage_by_dict():
     w = SvgWindow(10, 20)
     d = SvgDefinitionsContainer()
@@ -146,5 +150,32 @@ def test_definitions_and_usage_by_dict():
 </svg>
 ''')
 
+def test_svg_can_be_stored():
+    tmpf = op.join(gettempdir(), 'tmp_kaSvg.svg')
+
+    w = SvgWindow(10, 20)
+    d = SvgDefinitionsContainer()
+
+    dd = {'cx': 0, 'cy': 30, 'r': 28, 'fill': "red"}
+    k = XmlElement("circle", dd=dd)
+
+    _cmpXml(k, '<circle cy="30" cx="0" r="28" fill="red"/>')
+
+    dd = {"x": -30, "y": -5, "width": 80, "height": 10}
+    p = XmlElement("rect", dd=dd)
+
+    d.append(k)
+    d.append(p)
+    w.append(d)
+
+    w.useElement("k", 12, 23)
+    w.useElement("p", 24, 10)
+
+    w.store(tmpf)
+
+    with open(tmpf) as ff:
+        content = ff.read()
+
+    _cmpXml(w, content)
 
 
