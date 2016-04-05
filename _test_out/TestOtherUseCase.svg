@@ -1,34 +1,32 @@
-<svg width="300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+<svg width="300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
    height="200">
 
-  <defs>
-    <circle stroke-width="0.8pt" cy="0" stroke="#851" cx="0" r="20" id="red_circle"
-       fill="red"/>
-    <g id="grupa1">
-      <!-- [ To jest moja hiper grupa ] -->
-      <circle r="29" fill-opacity="0.5" cy="0" stroke="#421" cx="0" stroke-width="0.3pt"
-         id="circle2"/>
-      <polyline stroke="#146" points="0,0 45,36 49,51 23,0 14,3 0,0"/>
-      <rect width="10" style="fill:rgb(200,90,100); stroke-width:1; stroke:rgb(0,0,0); fill-opacity:0.7"
-         height="14"/>
-    </g>
-  </defs>
+    <defs>
+        <circle stroke-width="0.8pt" cy="0" stroke="#851" cx="0" r="20" id="red_circle" fill="red"/>
+        <g id="grupa1">
+            <!-- [ To jest moja hiper grupa ] -->
+            <circle r="29" fill-opacity="0.5" cy="0" stroke="#421" cx="0" stroke-width="0.3pt" id="circle2"/>
+            <polyline stroke="#146" points="0,0 45,36 49,51 23,0 14,3 0,0"/>
+            <rect width="10" style="fill:rgb(200,90,100); stroke-width:1; stroke:rgb(0,0,0); fill-opacity:0.7" 
+               height="14"/>
+        </g>
+    </defs>
 
-  <use xlink:href="#circle2" transform="translate(31, 21)" fill="#120"/>
-  <use xlink:href="#circle2" transform="translate(63, 42)" fill="#240"/>
-  <use xlink:href="#circle2" transform="translate(94, 63)" fill="#360"/>
-  <use xlink:href="#circle2" transform="translate(126, 84)" fill="#480"/>
-  <use xlink:href="#circle2" transform="translate(157, 105)" fill="#600"/>
-  <use xlink:href="#circle2" transform="translate(189, 126)" fill="#720"/>
-  <use xlink:href="#grupa1" transform="translate(30, 120)"/>
-  <use xlink:href="#circle2" transform="translate(183, 30) scale(0.125)" fill="#14"/>
-  <use xlink:href="#circle2" transform="translate(166, 60) scale(0.25)" fill="#28"/>
-  <use xlink:href="#circle2" transform="translate(149, 90) scale(0.375)" fill="#42"/>
-  <use xlink:href="#circle2" transform="translate(132, 120) scale(0.5)" fill="#56"/>
-  <use xlink:href="#circle2" transform="translate(115, 150) scale(0.625)" fill="#70"/>
-  <use xlink:href="#circle2" transform="translate(98, 180) scale(0.75)" fill="#84"/>
-  <use xlink:href="#circle2" transform="translate(81, 210) scale(0.875)" fill="#98"/>
-  <use xlink:href="#red_circle" transform="translate(16, 20)"/>
-  <use xlink:href="#circle2" transform="translate(190.34, 6.66)" fill="magenta"/>
-  <use xlink:href="#red_circle" transform="translate(10, 45)"/>
+    <use xlink:href="#circle2" transform="translate(31, 21)" fill="#120"/>
+    <use xlink:href="#circle2" transform="translate(63, 42)" fill="#240"/>
+    <use xlink:href="#circle2" transform="translate(94, 63)" fill="#360"/>
+    <use xlink:href="#circle2" transform="translate(126, 84)" fill="#480"/>
+    <use xlink:href="#circle2" transform="translate(157, 105)" fill="#600"/>
+    <use xlink:href="#circle2" transform="translate(189, 126)" fill="#720"/>
+    <use xlink:href="#grupa1" transform="translate(30, 120)"/>
+    <use xlink:href="#circle2" transform="translate(183, 30) scale(0.125)" fill="#14"/>
+    <use xlink:href="#circle2" transform="translate(166, 60) scale(0.25)" fill="#28"/>
+    <use xlink:href="#circle2" transform="translate(149, 90) scale(0.375)" fill="#42"/>
+    <use xlink:href="#circle2" transform="translate(132, 120) scale(0.5)" fill="#56"/>
+    <use xlink:href="#circle2" transform="translate(115, 150) scale(0.625)" fill="#70"/>
+    <use xlink:href="#circle2" transform="translate(98, 180) scale(0.75)" fill="#84"/>
+    <use xlink:href="#circle2" transform="translate(81, 210) scale(0.875)" fill="#98"/>
+    <use xlink:href="#red_circle" transform="translate(16, 20)"/>
+    <use xlink:href="#circle2" transform="translate(190.34, 6.66)" fill="magenta"/>
+    <use xlink:href="#red_circle" transform="translate(10, 45)"/>
 </svg>

@@ -69,12 +69,12 @@ def __TestCSSUseCase():
                            preserveAspectRatio="xMinYMin meet",
                            style='stroke-width: 0px; background-color: #8AC;')
 
-    svgDefinitions.newStyle(".klasaA",
+    svgDefinitions.createNewStyle(".klasaA",
                             stroke="green", stroke_width=0.6,
                             stroke_opacity=0.4,
                             fill="green", fill_opacity=0.23, rx=5, ry=5)
 
-    svgDefinitions.newStyle(".klasaA:hover",
+    svgDefinitions.createNewStyle(".klasaA:hover",
                             stroke="yellow", stroke_width=1.2,
                             stroke_opacity=0.3,
                             fill="green", fill_opacity=0.35)
@@ -106,7 +106,7 @@ def __TestCSSUseCase():
     grupa1.append(tekstt2)
 
     alink = XmlElement("a", id="tynlik")
-    alink.attributes["xlink:href"] = "TestOtherUseCase.svg"
+    alink._attributes["xlink:href"] = "TestOtherUseCase.svg"
     alink.append(XmlElement("rect", x=15, y=50, width=60, height=20, Class="klasaA"))
 
 
@@ -135,7 +135,7 @@ def __TestOtherUseCase():
     svg_window.append(svgDefinitions)
 
     kolko = XmlElement("circle", cx=0, cy=0, r=20, fill="red", id="red_circle", stroke='#851')
-    kolko.attributes["stroke-width"] = '0.8pt'
+    kolko._attributes["stroke-width"] = '0.8pt'
     svgDefinitions.append(kolko)
 
     kolko2 = XmlElement("circle", cx=0, cy=0, r=29, id="circle2", stroke='#421',

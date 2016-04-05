@@ -159,6 +159,28 @@ def test_definitions():
 </svg>
 ''')
 
+def test_namespaced_xml():
+    w = SvgWindow(10, 20, prefix="ka")
+    d = SvgDefinitionsContainer(prefix="ka")
+    k = XmlElement("circle", prefix="ka", cx=0, cy=30, r=28)
+    p = XmlElement("rect", prefix="ka", x=-30, y=-5, width="80", height="10")
+
+    d.append(k)
+    d.append(p)
+    w.append(d)
+
+    assert str(w) == '''\
+<ka:svg width="10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+   height="20">
+
+    <ka:defs>
+        <ka:circle cy="30" cx="0" r="28"/>
+        <ka:rect y="-5" width="80" x="-30" height="10"/>
+    </ka:defs>
+
+</ka:svg>
+'''
+
 
 def test_definitions_and_usage():
     w = SvgWindow(10, 20)
@@ -329,12 +351,12 @@ def test_style_definitions():
                           preserveAspectRatio="xMinYMin meet",
                           style='stroke-width: 0px; background-color: #8AC;')
 
-    svgDefinitions.newStyle(".klasaA",
+    svgDefinitions.createNewStyle(".klasaA",
                                stroke="green", stroke_width=0.6,
                                stroke_opacity=0.4,
                                fill="green", fill_opacity=0.23, rx=5, ry=5)
 
-    svgDefinitions.newStyle(".klasaA:hover",
+    svgDefinitions.createNewStyle(".klasaA:hover",
                             stroke="yellow", stroke_width=1.2,
                             stroke_opacity=0.3,
                             fill="green", fill_opacity=0.35)
@@ -365,7 +387,7 @@ def test_style_definitions():
     grupa1.append(tekstt2)
 
     alink = XmlElement("a", id="tynlik")
-    alink.attributes["xlink:href"] = "TestOtherUseCase.svg"
+    alink._attributes["xlink:href"] = "TestOtherUseCase.svg"
     alink.append(XmlElement("rect", x=15, y=50, width=60, height=20, Class="klasaA"))
 
     svg_window.append(svgDefinitions)
