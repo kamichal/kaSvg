@@ -27,6 +27,33 @@ def test_empty_window():
 xmlns:xlink="http://www.w3.org/1999/xlink"
 height="234"/>''')
 
+def test_pretty_xml():
+    x = XmlElement("id", node="nodename")
+    y = XmlElement("y", node="be")
+    z = XmlElement("z")
+    a = XmlElement("dd", node="tu")
+    
+    a.append(y)
+    a.append(y)
+    a.append(z)
+    x.append(XmlElement('empty'))
+    x.append(XmlElement('p', text="some text"))
+    x.append(a)
+
+    print x
+    assert str(x) == """\
+<id node="nodename">
+    <empty/>
+    <p>
+        some text
+    </p>
+    <dd node="tu">
+        <y node="be"/>
+        <y node="be"/>
+        <z/>
+    </dd>
+</id>
+"""
 
 def test_window_params():
     w = SvgWindow(123, 234, stroke_width='0px', background_color='#8AC')

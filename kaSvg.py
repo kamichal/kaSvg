@@ -8,12 +8,13 @@ This module contains all the classes required to easily create an xml
 document containing svg diagrams.
 
 '''
-import random
+from random import choice
+from doctest import _indent
 
 def _randomID():
     s = 'abcdefghijklmnopqrstuvwxyz'
     s += s.upper() + '1234567890' + '_' * 30
-    return 'id_' + ''.join(random.choice(s) for _ in xrange(10))
+    return 'id_' + ''.join(choice(s) for _ in xrange(10))
 
 class XmlElement(object):
     '''Prototype from which all the xml elements are derived.
@@ -28,7 +29,7 @@ class XmlElement(object):
         self.sub_elements = []
         self.attributes = {}
         if attributes:
-            if len(attributes) == 1 and attributes["dd"]:
+            if len(attributes) == 1 and "dd" in attributes:
                 if isinstance(attributes["dd"], dict):
                     attributes = attributes["dd"]
             for key in attributes:
@@ -52,32 +53,43 @@ class XmlElement(object):
         '''append other to self to create list of lists of elements'''
         self.sub_elements.append(other)
 
-    def indRepr(self, indentLevel=0):
-        ''' prints itself with indentation '''
-        render = ["%s<%s%s" % (indentStr(indentLevel), self.prefix, self.tag)]
+    def _reprAttributes(self, indentLevel):
+        render = []
         lines = 1
         for i, att in enumerate(self.attributes):
             if att != 'text':
-                render.append(' %s="%s"' % (att, self.attributes[att]))
+                render.append('%s="%s"' % (att, self.attributes[att]))
                 # wrap line if too long, unless it's the last element
-                if len(''.join(render)) > lines * 80 and i < len(self.attributes) - 1:
-                    render.append("\n%s" % (indentStr(indentLevel + 1)))
+                if len(' '.join(render)) > lines * 80 and i < len(self.attributes) - 1:
+                    render.append("\n%s" % (_indentStr(indentLevel + 1)))
                     lines = lines + 1
+        return ' '.join(render)
 
+    def _reprSubelements(self, indentLevel):
+        r = []
         if 'text' in self.attributes:
-            render.append(">%s</%s%s>\n" % (self.attributes['text'],
-                                            self.prefix, self.tag))
-        elif self.sub_elements:
-            render.append(">\n")
+            r.append("\n%s%s\n" % (_indentStr(indentLevel+1), 
+                               self.attributes['text']))
+
+        if self.sub_elements:
+            r.append("\n")
             for elem in self.sub_elements:
-                render.append("%s" % elem.indRepr(indentLevel + 1))
-            render.append("%s</%s%s>\n" % (indentStr(indentLevel), self.prefix, self.tag))
+                r.append("%s" % elem.indRepr(indentLevel + 1))
+        return "".join(filter(None,r))
+
+    def indRepr(self, indentLevel=0):
+        ind = _indentStr(indentLevel)
+        tag = ":".join(filter(None, [self.prefix, self.tag]))
+        atts = self._reprAttributes(indentLevel)
+        h = " ".join(filter(None, [tag, atts]))
+        subs = self._reprSubelements(indentLevel + 1)
+        if subs:
+            r = "{0}<{1}>{2}{0}</{3}>\n".format(ind, h, subs, tag)
         else:
-            render.append("/>\n")
+            r = "{0}<{1}/>\n".format(ind, h)
+        return r
 
-        return ''.join(render)
-
-def indentStr(level):
+def _indentStr(level):
     ''' Global function that returns indentation string'''
     return level * "  "
 
@@ -121,10 +133,10 @@ class SvgStyleDefinitionEntry(object):
                 self.attributes[fixattr] = attrList[attKey]
 
     def indRepr(self, indentLevel=0):
-        render = ["%s%s {\n" % (indentStr(indentLevel), self.name)]
+        render = ["%s%s {\n" % (_indentStr(indentLevel), self.name)]
         for att in self.attributes:
-            render.append("%s%s: %s;\n" % (indentStr(indentLevel + 1), att, self.attributes[att]))
-        render.append("%s}\n" % (indentStr(indentLevel)))
+            render.append("%s%s: %s;\n" % (_indentStr(indentLevel + 1), att, self.attributes[att]))
+        render.append("%s}\n" % (_indentStr(indentLevel)))
         return ''.join(render)
 
     def append(self, **attrList):
@@ -142,12 +154,12 @@ class SvgStylesContainer(XmlElement):
 
     def indRepr(self, indentLevel=0):
         if self.styles:
-            render = ["%s<style type=\"text/css\">\n" % (indentStr(indentLevel))]
-            render.append("%s<![CDATA[\n" % (indentStr(indentLevel + 1)))
+            render = ["%s<style type=\"text/css\">\n" % (_indentStr(indentLevel))]
+            render.append("%s<![CDATA[\n" % (_indentStr(indentLevel + 1)))
             for styleClass in self.styles:
                 render.append(styleClass.indRepr(indentLevel + 2))
-            render.append("%s]]>\n" % (indentStr(indentLevel + 1)))
-            render.append("%s</style>\n" % (indentStr(indentLevel)))
+            render.append("%s]]>\n" % (_indentStr(indentLevel + 1)))
+            render.append("%s</style>\n" % (_indentStr(indentLevel)))
             return ''.join(render)
         else:
             return ''
@@ -190,5 +202,5 @@ class XmlComment(object):
         return "<!-- [ " + self.text + " ] -->\n"
 
     def indRepr(self, indentLevel):
-        return "%s%s" % (indentStr(indentLevel), self)
+        return "%s%s" % (_indentStr(indentLevel), self)
 
