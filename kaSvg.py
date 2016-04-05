@@ -8,7 +8,7 @@ This module contains all the classes required to easily create an xml
 document containing svg diagrams.
 
 '''
-import random
+from random import choice
 
 def _indentStr(level):
     return level * "  "
@@ -16,7 +16,7 @@ def _indentStr(level):
 def _randomID():
     s = 'abcdefghijklmnopqrstuvwxyz'
     s += s.upper() + '1234567890' + '_' * 30
-    return 'id_' + ''.join(random.choice(s) for _ in xrange(10))
+    return 'id_' + ''.join(choice(s) for _ in xrange(10))
 
 class XmlElement(object):
     '''Prototype from which all the xml elements are derived.
@@ -54,30 +54,41 @@ class XmlElement(object):
     def append(self, other):
         self.sub_elements.append(other)
 
-    def indRepr(self, indentLevel=0):
-        render = ["%s<%s%s" % (_indentStr(indentLevel), self.prefix, self.tag)]
+    def _reprAttributes(self, indentLevel):
+        render = []
         lines = 1
         for i, att in enumerate(self.attributes):
             if att != 'text':
-                render.append(' %s="%s"' % (att, self.attributes[att]))
+                render.append('%s="%s"' % (att, self.attributes[att]))
                 # wrap line if too long, unless it's the last element
-                if len(''.join(render)) > lines * 80 and i < len(self.attributes) - 1:
+                if len(' '.join(render)) > lines * 80 and i < len(self.attributes) - 1:
                     render.append("\n%s" % (_indentStr(indentLevel + 1)))
                     lines = lines + 1
+        return ' '.join(render)
 
+    def _reprSubelements(self, indentLevel):
+        r = []
         if 'text' in self.attributes:
-            render.append(">%s</%s%s>\n" % (self.attributes['text'],
-                                            self.prefix, self.tag))
-        elif self.sub_elements:
-            render.append(">\n")
+            r.append("\n%s%s\n" % (_indentStr(indentLevel+1), 
+                               self.attributes['text']))
+
+        if self.sub_elements:
+            r.append("\n")
             for elem in self.sub_elements:
-                render.append("%s" % elem.indRepr(indentLevel + 1))
-            render.append("%s</%s%s>\n" % (_indentStr(indentLevel), self.prefix, self.tag))
+                r.append("%s" % elem.indRepr(indentLevel + 1))
+        return "".join(filter(None,r))
+
+    def indRepr(self, indentLevel=0):
+        ind = _indentStr(indentLevel)
+        tag = ":".join(filter(None, [self.prefix, self.tag]))
+        atts = self._reprAttributes(indentLevel)
+        h = " ".join(filter(None, [tag, atts]))
+        subs = self._reprSubelements(indentLevel + 1)
+        if subs:
+            r = "{0}<{1}>{2}{0}</{3}>\n".format(ind, h, subs, tag)
         else:
-            render.append("/>\n")
-
-        return ''.join(render)
-
+            r = "{0}<{1}/>\n".format(ind, h)
+        return r
 
 class SvgWindow(XmlElement):
     def __init__(self, width, height, **attributes):
