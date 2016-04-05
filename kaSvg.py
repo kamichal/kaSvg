@@ -9,6 +9,9 @@ document containing svg diagrams.
 
 '''
 from random import choice
+from textwrap import TextWrapper
+
+_MAX_LINE_WIDTH = 80
 
 def _indentStr(level):
     return level * '  '
@@ -23,14 +26,14 @@ class XmlElement(object):
         self._tag = tag
         self._prefix = prefix
         self._subs = []
-        self._attributes = {}
+        self._attrs = {}
         if attributes:
             if len(attributes) == 1 and 'dd' in attributes:
                 if isinstance(attributes['dd'], dict):
                     attributes = attributes['dd']
             for key in attributes:
                 fixattr = key.replace('_', '-').lower()
-                self._attributes[fixattr] = attributes[key]
+                self._attrs[fixattr] = attributes[key]
                 '''lower case is needed for converting 'Class'
                 (class is forbiden in such use)
                 you pass stroke_width=0.2 and it's being converted to
@@ -40,7 +43,7 @@ class XmlElement(object):
         if attributes:
             for key in attributes:
                 fixattr = key.replace('_', '-').lower()
-                self._attributes[fixattr] = attributes[key]
+                self._attrs[fixattr] = attributes[key]
 
     def append(self, other):
         self._subs.append(other)
@@ -48,34 +51,29 @@ class XmlElement(object):
     def __repr__(self):
         return self.indRepr(0)
 
-    def _reprAttributes(self, indentLevel):
-        render = []
-        lines = 1
-        for i, att in enumerate(self._attributes):
-            if att != 'text':
-                render.append('%s="%s"' % (att, self._attributes[att]))
-                # wrap line if too long, unless it's the last element
-                if len(' '.join(render)) > lines * 80 and i < len(self._attributes) - 1:
-                    render.append('\n%s' % (_indentStr(indentLevel + 1)))
-                    lines = lines + 1
-        return ' '.join(render)
+    def _reprAttributes(self, indent_level):
+        r = ['%s="%s"' % (k, self._attrs[k]) for k in self._attrs if k != 'text']
+        w = TextWrapper(width=_MAX_LINE_WIDTH, break_on_hyphens=False,
+                              subsequent_indent=_indentStr(indent_level))
+        l = w.wrap(' '.join(r))
+        return '\n'.join(l)
 
-    def _reprSubelements(self, indentLevel):
+    def _reprSubelements(self, indent_level):
         r = []
-        if 'text' in self._attributes:
-            r.append('%s%s\n' % (_indentStr(indentLevel + 1),
-                                 self._attributes['text']))
+        if 'text' in self._attrs:
+            r.append('%s%s\n' % (_indentStr(indent_level + 1),
+                                 self._attrs['text']))
         if self._subs:
             for elem in self._subs:
-                r.append('%s' % elem.indRepr(indentLevel + 1))
+                r.append('%s' % elem.indRepr(indent_level + 1))
         return ''.join(filter(None, r))
 
-    def indRepr(self, indentLevel=0):
-        ind = _indentStr(indentLevel)
+    def indRepr(self, indent_level=0):
+        ind = _indentStr(indent_level)
         tag = ':'.join(filter(None, [self._prefix, self._tag]))
-        atts = self._reprAttributes(indentLevel)
+        atts = self._reprAttributes(indent_level + 1)
         h = ' '.join(filter(None, [tag, atts]))
-        subs = self._reprSubelements(indentLevel + 1)
+        subs = self._reprSubelements(indent_level + 1)
         if subs:
             r = '''{0}<{1}>\n{2}{0}</{3}>\n'''.format(ind, h, subs, tag)
         else:
@@ -90,23 +88,23 @@ class XmlElement(object):
 class SvgStyleDefinitionEntry(object):
     def __init__(self, name, **attrList):
         self.name = name
-        self._attributes = {}
+        self._attrs = {}
         if attrList is not None:
             for attKey in attrList.keys():
                 fixattr = attKey.replace('_', '-').lower()
-                self._attributes[fixattr] = attrList[attKey]
+                self._attrs[fixattr] = attrList[attKey]
 
-    def indRepr(self, indentLevel=0):
-        render = ['%s%s {\n' % (_indentStr(indentLevel), self.name)]
-        for att in self._attributes:
-            render.append('%s%s: %s;\n' % (_indentStr(indentLevel + 1), att, self._attributes[att]))
-        render.append('%s}\n' % (_indentStr(indentLevel)))
+    def indRepr(self, indent_level=0):
+        render = ['%s%s {\n' % (_indentStr(indent_level), self.name)]
+        for att in self._attrs:
+            render.append('%s%s: %s;\n' % (_indentStr(indent_level + 1), att, self._attrs[att]))
+        render.append('%s}\n' % (_indentStr(indent_level)))
         return ''.join(render)
 
     def append(self, **attrList):
         '''not sure if it's ok'''
-        # self._attributes = {self._attributes, attrList}
-        self._attributes = dict(zip(self._attributes, attrList))
+        # self._attrs = {self._attrs, attrList}
+        self._attrs = dict(zip(self._attrs, attrList))
 
 
 class SvgStylesContainer(XmlElement):
@@ -116,13 +114,13 @@ class SvgStylesContainer(XmlElement):
     def append(self, _SvgStyleDefinitionEntry):
         self._subs.append(_SvgStyleDefinitionEntry)
 
-    def _reprSubelements(self, indentLevel):
+    def _reprSubelements(self, indent_level):
         if self._subs:
             s = []
             for elem in self._subs:
-                s.append('%s' % elem.indRepr(indentLevel + 1))
+                s.append('%s' % elem.indRepr(indent_level + 1))
             stylesstr = ''.join(filter(None, s))
-            return '{0}<![CDATA[\n{0}{1}]]>'.format(_indentStr(indentLevel),
+            return '{0}<![CDATA[\n{1}{0}]]>\n'.format(_indentStr(indent_level),
                                                     stylesstr)
         else:
             return ''
@@ -142,13 +140,13 @@ class SvgDefs(XmlElement):
     def isEmpty(self):
         return not self._subs and self._styles.isEmpty()
 
-    def _reprSubelements(self, indentLevel):
+    def _reprSubelements(self, indent_level):
         r = []
         if not self._styles.isEmpty():
-            r.append(self._styles.indRepr(indentLevel + 1))
+            r.append(self._styles.indRepr(indent_level + 1))
         if self._subs:
             for elem in self._subs:
-                r.append('%s' % elem.indRepr(indentLevel + 1))
+                r.append('%s' % elem.indRepr(indent_level + 1))
         return ''.join(r)
 
 class SvgWindow(XmlElement):
@@ -156,8 +154,8 @@ class SvgWindow(XmlElement):
         attributes['width'] = width
         attributes['height'] = height
         XmlElement.__init__(self, 'svg', **attributes)
-        self._attributes['xmlns'] = 'http://www.w3.org/2000/svg'
-        self._attributes['xmlns:xlink'] = 'http://www.w3.org/1999/xlink'
+        self._attrs['xmlns'] = 'http://www.w3.org/2000/svg'
+        self._attrs['xmlns:xlink'] = 'http://www.w3.org/1999/xlink'
         self._defs = SvgDefs()
 
     def append(self, other):
@@ -168,16 +166,16 @@ class SvgWindow(XmlElement):
         else:
             self._subs.append(other)
 
-    def _reprSubelements(self, indentLevel):
+    def _reprSubelements(self, indent_level):
         r = []
         if not self._defs.isEmpty():
-            r.append(self._defs.indRepr(indentLevel))
-        if 'text' in self._attributes:
-            r.append('%s%s\n' % (_indentStr(indentLevel + 1),
-                                 self._attributes['text']))
+            r.append(self._defs.indRepr(indent_level))
+        if 'text' in self._attrs:
+            r.append('%s%s\n' % (_indentStr(indent_level + 1),
+                                 self._attrs['text']))
         if self._subs:
             for elem in self._subs:
-                r.append('%s' % elem.indRepr(indentLevel + 1))
+                r.append('%s' % elem.indRepr(indent_level + 1))
         return ''.join(filter(None, r))
 
     def __repr__(self):
@@ -219,6 +217,6 @@ class XmlComment(object):
     def __repr__(self):
         return '<!-- [ ' + self.text + ' ] -->\n'
 
-    def indRepr(self, indentLevel):
-        return '%s%s' % (_indentStr(indentLevel), self)
+    def indRepr(self, indent_level):
+        return '%s%s' % (_indentStr(indent_level), self)
 

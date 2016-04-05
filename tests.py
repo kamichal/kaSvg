@@ -57,7 +57,7 @@ height="234"/>''')
 
 
 def test_pretty_xml_1():
-    w = XmlElement("parent", node="nodename")
+    w = XmlElement("parent", node="nodename", long_key_and_val="this is long value of the field quite very long")
     em = XmlElement("emb", node="nodename")
     em.append(XmlElement("mc1", color="#666", st="some"))
     em.append(XmlElement("mc2", color="#666", st="some"))
@@ -68,7 +68,8 @@ def test_pretty_xml_1():
 
     print str(w)
     assert str(w) == """\
-<parent node="nodename">
+<parent node="nodename" long-key-and-val="this is long value of the field quite very
+  long">
     <child1 color="#666"/>
     <emb node="nodename">
         <mc1 color="#666" st="some"/>
@@ -122,7 +123,6 @@ width="123"
 stroke-width="0px"
 background-color="#8AC"/>''')
 
-
 def test_definitions():
     w = SvgWindow(10, 20)
     d = SvgDefs()
@@ -158,8 +158,8 @@ def test_namespaced_xml():
     w.append(d)
     print w
     assert str(w) == '''\
-<svg:svg width="10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-   height="20">
+<svg:svg width="10" xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink" height="20">
     <svg:defs>
         <svg:circle cy="30" cx="0" r="28"/>
         <svg:rect y="-5" width="80" x="-30" height="10"/>
@@ -370,7 +370,7 @@ def test_style_definitions():
     grupa1.append(tekstt2)
 
     alink = XmlElement("a", id="tynlik")
-    alink._attributes["xlink:href"] = "TestOtherUseCase.svg"
+    alink._attrs["xlink:href"] = "TestOtherUseCase.svg"
     alink.append(XmlElement("rect", x=15, y=50, width=60, height=20, Class="klasaA"))
 
     svg_window.append(svgDefinitions)
@@ -385,29 +385,30 @@ def test_style_definitions():
     svg_window.append(tekstt3)
 
     ref = """\
-<svg style="stroke-width: 0px; background-color: #8AC;" xmlns="http://www.w3.org/2000/svg" 
-   height="100%" width="100%" preserveaspectratio="xMinYMin meet" xmlns:xlink="http://www.w3.org/1999/xlink" 
-   viewbox="0 0 500 500">
+<svg style="stroke-width: 0px; background-color: #8AC;"
+  xmlns="http://www.w3.org/2000/svg" height="100%" width="100%"
+  preserveaspectratio="xMinYMin meet" xmlns:xlink="http://www.w3.org/1999/xlink"
+  viewbox="0 0 500 500">
     <defs>
         <style type="text/css">
-            <![CDATA[
-                .klasaA {
-                  stroke-opacity: 0.4;
-                  fill-opacity: 0.23;
-                  rx: 5;
-                  ry: 5;
-                  stroke: green;
-                  stroke-width: 0.6;
-                  fill: green;
-                }
-                .klasaA:hover {
-                  stroke-width: 1.2;
-                  stroke: yellow;
-                  fill-opacity: 0.35;
-                  stroke-opacity: 0.3;
-                  fill: green;
-                }
-            ]]>
+          <![CDATA[
+            .klasaA {
+              stroke-opacity: 0.4;
+              fill-opacity: 0.23;
+              rx: 5;
+              ry: 5;
+              stroke: green;
+              stroke-width: 0.6;
+              fill: green;
+            }
+            .klasaA:hover {
+              stroke-width: 1.2;
+              stroke: yellow;
+              fill-opacity: 0.35;
+              stroke-opacity: 0.3;
+              fill: green;
+            }
+          ]]>
         </style>
         <g class="klasaA" id="grupa1">
             <circle cy="30" cx="0" r="53"/>
@@ -427,8 +428,10 @@ def test_style_definitions():
     </a>
     <use xlink:href="#grupa1" transform="translate(45, 130)"/>
     <use xlink:href="#grupa1" transform="translate(180, 100) scale(0.6) rotate(45)"/>
-    <use xlink:href="#grupa1" transform="translate(55, 25) scale(0.4) rotate(-15.4) translate(50, 50)"/>
-    <use xlink:href="#grupa1" transform="translate(80, 90) scale(0.7) rotate(15.4) translate(50, 50)"/>
+    <use xlink:href="#grupa1" transform="translate(55, 25) scale(0.4) rotate(-15.4)
+      translate(50, 50)"/>
+    <use xlink:href="#grupa1" transform="translate(80, 90) scale(0.7) rotate(15.4)
+      translate(50, 50)"/>
     <use xlink:href="#grupa1" transform="translate(220, 80)"/>
     <text y="17" class="klasaA" x="0">
         SVG

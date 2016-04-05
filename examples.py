@@ -127,7 +127,7 @@ def CSS_example():
     grupa1.append(tekstt2)
 
     alink = XmlElement("a", id="tynlik")
-    alink._attributes["xlink:href"] = "TestOtherUseCase.svg"
+    alink._attrs["xlink:href"] = "TestOtherUseCase.svg"
     alink.append(XmlElement("rect", x=15, y=50, width=60, height=20, Class="klasaA"))
 
     svg_window.append(svgDefinitions)
@@ -155,7 +155,7 @@ def example_3():
     svg_window.append(svgDefinitions)
 
     kolko = XmlElement("circle", cx=0, cy=0, r=20, fill="red", id="red_circle", stroke='#851')
-    kolko._attributes["stroke-width"] = '0.8pt'
+    kolko._attrs["stroke-width"] = '0.8pt'
     svgDefinitions.append(kolko)
 
     kolko2 = XmlElement("circle", cx=0, cy=0, r=29, id="circle2", stroke='#421',
