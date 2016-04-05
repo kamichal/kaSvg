@@ -7,21 +7,45 @@ Created on 1 kwi 2016
 
 import sys
 from os import path as op
+import pytest
 
 from lxml import etree
 from formencode.doctest_xml_compare import xml_compare
 from tempfile import gettempdir
 
+
 from kaSvg import SvgWindow, SvgDefinitionsContainer, \
-                  XmlElement, DefineSvgGroup
+    XmlElement, DefineSvgGroup, ShapesGroup
+
 
 def _cmpXml(got, ref):
-    print "- "*5 + "GOT:" + " -"*20
+    print "- " * 5 + "GOT:" + " -" * 20
     print got
-    print "- "*28
+    print "- " * 28
     tree1 = etree.fromstring(str(got))
     tree2 = etree.fromstring(str(ref))
     assert xml_compare(tree1, tree2, lambda x: sys.stdout.write(x + "\n"))
+
+
+def test_empty_xml_element():
+    w = XmlElement("id")
+    _cmpXml(w, """<id/>""")
+
+
+def test_simple_xml_element():
+    w = XmlElement("id", node="nodename")
+    _cmpXml(w, """<id node="nodename"/>""")
+
+
+def test_parent_xml_element():
+    w = XmlElement("id", node="nodename")
+    w.append(XmlElement("child1", color="#666"))
+    w.append(XmlElement("child2", color="#123"))
+    _cmpXml(w, """\
+<id node="nodename">
+    <child1 color= "#666"/>
+    <child2 color= "#123"/>
+</id>""")
 
 
 def test_empty_window():
@@ -31,12 +55,37 @@ def test_empty_window():
 xmlns:xlink="http://www.w3.org/1999/xlink"
 height="234"/>''')
 
-def test_pretty_xml():
+
+def test_pretty_xml_1():
+    w = XmlElement("parent", node="nodename")
+    em = XmlElement("emb", node="nodename")
+    em.append(XmlElement("mc1", color="#666", st="some"))
+    em.append(XmlElement("mc2", color="#666", st="some"))
+    w.append(XmlElement("child1", color="#666"))
+    w.append(em)
+    w.append(XmlElement("child2"))
+    w.append(XmlElement("child3", color="#123"))
+
+    print str(w)
+    assert str(w) == """\
+<parent node="nodename">
+  <child1 color="#666"/>
+  <emb node="nodename">
+    <mc1 color="#666" st="some"/>
+    <mc2 color="#666" st="some"/>
+  </emb>
+  <child2/>
+  <child3 color="#123"/>
+</parent>
+"""
+
+
+def test_pretty_xml_2():
     x = XmlElement("id", node="nodename")
     y = XmlElement("y", node="be")
     z = XmlElement("z")
     a = XmlElement("dd", node="tu")
-    
+
     a.append(y)
     a.append(y)
     a.append(z)
@@ -58,6 +107,7 @@ def test_pretty_xml():
     </dd>
 </id>
 """
+
 
 def test_window_params():
     w = SvgWindow(123, 234, stroke_width='0px', background_color='#8AC')
@@ -109,6 +159,7 @@ def test_definitions():
 </svg>
 ''')
 
+
 def test_definitions_and_usage():
     w = SvgWindow(10, 20)
     d = SvgDefinitionsContainer()
@@ -136,6 +187,69 @@ def test_definitions_and_usage():
   <use xlink:href="#p" transform="translate(24, 10)"/>
 </svg>
 ''')
+
+
+def test_group_usage_1():
+    w = SvgWindow(200, 100)
+    d = SvgDefinitionsContainer()
+
+    k = XmlElement("circle", cx=0, cy=30, r=28, fill="red")
+    p = XmlElement("rect", x=-30, y=-5, width="80", height="10")
+
+    g = DefineSvgGroup("grupa1", d)
+    g.append(k)
+    g.append(p)
+
+    w.append(d)
+
+    w.useElement("grupa1", 12, 23)
+    w.useElement("grupa1", 24, 10)
+
+    _cmpXml(w, '''\
+<svg width="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+   height="100">
+
+  <defs>
+    <g id="grupa1">
+      <circle cy="30" cx="0" r="28" fill="red"/>
+      <rect y="-5" width="80" x="-30" height="10"/>
+    </g>
+  </defs>
+
+  <use xlink:href="#grupa1" transform="translate(12, 23)"/>
+  <use xlink:href="#grupa1" transform="translate(24, 10)"/>
+</svg>
+''')
+
+
+@pytest.mark.xfail
+def test_group_usage_2():
+    w = SvgWindow(200, 100)
+
+    k = XmlElement("circle", cx=0, cy=30, r=28, fill="red")
+    p = XmlElement("rect", x=-30, y=-5, width="80", height="10")
+
+    w.append(ShapesGroup("grupa1", k, p))
+
+    w.useElement("grupa1", 12, 23)
+    w.useElement("grupa1", 24, 10)
+
+    _cmpXml(w, '''\
+<svg width="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+   height="100">
+
+  <defs>
+    <g id="grupa1">
+      <circle cy="30" cx="0" r="28" fill="red"/>
+      <rect y="-5" width="80" x="-30" height="10"/>
+    </g>
+  </defs>
+
+  <use xlink:href="#grupa1" transform="translate(12, 23)"/>
+  <use xlink:href="#grupa1" transform="translate(24, 10)"/>
+</svg>
+''')
+
 
 def test_xml_by_dict_or_kwargs():
     d = {'cx': 0, 'cy': 30, 'r': 28, 'fill': "red"}
@@ -177,6 +291,7 @@ def test_definitions_and_usage_by_dict():
   <use xlink:href="#p" transform="translate(24, 10)"/>
 </svg>
 ''')
+
 
 def test_svg_can_be_stored():
     tmpf = op.join(gettempdir(), 'tmp_kaSvg.svg')

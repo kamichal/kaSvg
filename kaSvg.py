@@ -69,14 +69,14 @@ class XmlElement(object):
     def _reprSubelements(self, indentLevel):
         r = []
         if 'text' in self.attributes:
-            r.append("\n%s%s\n" % (_indentStr(indentLevel+1), 
-                               self.attributes['text']))
+            r.append("\n%s%s\n" % (_indentStr(indentLevel+1),
+                                   self.attributes['text']))
 
         if self.sub_elements:
             r.append("\n")
             for elem in self.sub_elements:
                 r.append("%s" % elem.indRepr(indentLevel + 1))
-        return "".join(filter(None,r))
+        return "".join(filter(None, r))
 
     def indRepr(self, indentLevel=0):
         ind = _indentStr(indentLevel)
@@ -97,6 +97,88 @@ class SvgWindow(XmlElement):
         XmlElement.__init__(self, "svg", **attributes)
         self.attributes["xmlns"] = "http://www.w3.org/2000/svg"
         self.attributes["xmlns:xlink"] = "http://www.w3.org/1999/xlink"
+
+    def __repr__(self):
+        return self.indRepr(0)
+
+    def useElement(self, xlinkId, x, y, **attributes):
+        extraTransform = ""
+        for att in attributes:
+            if att == "transform":
+                extraTransform = extraTransform + " " + attributes[att]
+                break
+        attributes["transform"] = "translate(%g, %g)%s" % (x, y, extraTransform)
+        attributes["xlink:href"] = "#%s" % (xlinkId)
+        self.append(XmlElement("use", **attributes))
+
+    def store(self, thatfilename):
+        with open(thatfilename, 'w') as ff:
+            ff.write(str(self))
+
+class SvgDefinitionsContainer(XmlElement):
+    '''Short-cut to create svg defs.  A user creates an instance of this
+    object and simply appends other svg Elements'''
+    def __init__(self):
+        # self.root = XmlElement("svg", width=0, height=0)
+        self.root = XmlElement("defs")
+        self.styles = SvgStylesContainer()
+        self.root.append(self.styles)
+
+    def append(self, other):
+        '''appends other to defs sub-element, instead of root element'''
+        self.root.append(other)
+
+    def newStyle(self, name, **attrList):
+        '''http://blogs.adobe.com/webplatform/2013/01/08/svg-styling/'''
+        self.styles.append(SvgStyleDefinitionEntry(name, **attrList))
+
+    def indRepr(self, indentLevel):
+        return "\n" + self.root.indRepr(indentLevel) + "\n"
+
+class SvgWindow2(XmlElement):
+    def __init__(self, width, height, **attributes):
+        attributes["width"] = width
+        attributes["height"] = height
+        XmlElement.__init__(self, "svg", **attributes)
+        self.attributes["xmlns"] = "http://www.w3.org/2000/svg"
+        self.attributes["xmlns:xlink"] = "http://www.w3.org/1999/xlink"
+        self.defs = SvgDefinitionsContainer()
+
+    def append(self, other):
+        if isinstance(other, SvgStyleDefinitionEntry):
+            self.defs.styles.append(other)
+        elif isinstance(other, ShapesGroup):
+            self.defs.append(other)
+        else:
+            self.sub_elements.append(other)
+
+    def indRepr(self, indentLevel=0):
+        render = ["%s<%s%s" % (_indentStr(indentLevel), self.prefix, self.tag)]
+        lines = 1
+        for i, att in enumerate(self.attributes):
+            if att != 'text':
+                render.append(' %s="%s"' % (att, self.attributes[att]))
+                # wrap line if too long, unless it's the last element
+                if len(''.join(render)) > lines * 80 and i < len(self.attributes) - 1:
+                    render.append("\n%s" % (_indentStr(indentLevel + 1)))
+                    lines = lines + 1
+        render.append(">\n")
+
+        if self.defs:
+            render.append(self.defs.indRepr(indentLevel + 1))
+
+        if self.sub_elements:
+            for entry in self.sub_elements:
+                render.append("%s" % entry.indRepr(indentLevel + 1))
+
+            for elem in self.sub_elements:
+                render.append("%s" % elem.indRepr(indentLevel + 1))
+
+            render.append("%s</%s%s>\n" % (_indentStr(indentLevel), self.prefix, self.tag))
+        else:
+            render.append("/>\n")
+
+        return ''.join(render)
 
     def __repr__(self):
         return self.indRepr(0)
@@ -160,34 +242,21 @@ class SvgStylesContainer(XmlElement):
             return ''
 
 
-class SvgDefinitionsContainer(XmlElement):
-    '''Short-cut to create svg defs.  A user creates an instance of this
-    object and simply appends other svg Elements'''
-    def __init__(self):
-        # self.root = XmlElement("svg", width=0, height=0)
-        self.root = XmlElement("defs")
-        self.styles = SvgStylesContainer()
-        self.root.append(self.styles)
-
-    def append(self, other):
-        '''appends other to defs sub-element, instead of root element'''
-        self.root.append(other)
-
-    def newStyle(self, name, **attrList):
-        '''http://blogs.adobe.com/webplatform/2013/01/08/svg-styling/'''
-        self.styles.append(SvgStyleDefinitionEntry(name, **attrList))
-
-    def indRepr(self, indentLevel):
-        return "\n" + self.root.indRepr(indentLevel) + "\n"
-
-
 class DefineSvgGroup(XmlElement):
     def __init__(self, defId, SvgDefContainer, **attributes):
-        if not defId:
-            defId = _randomID()
         attributes["id"] = defId
         XmlElement.__init__(self, "g", **attributes)
         SvgDefContainer.append(self)
+
+class ShapesGroup(XmlElement):
+    def __init__(self, group_ID, *objects, **attributes):
+        if not group_ID:
+            group_ID = _randomID()
+        attributes["id"] = group_ID
+        XmlElement.__init__(self, "g", **attributes)
+        if objects:
+            for o in objects:
+                self.sub_elements.append(o)
 
 
 class XmlComment(object):
