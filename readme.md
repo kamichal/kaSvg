@@ -33,13 +33,16 @@ def simple_example():
 
     window.store("_test_out/SimpleExample.svg")
 ```
+
 generates such an image:
 
 ![sample of generated svg image](./_test_out/SimpleExample.svg)
 
+Author:   Michał Kaczmarczyk
 
--------- | ---------------------------------
-Author   | Michał Kaczmarczyk
-Address  | Poland 
-Contact  | use github contact form, please
-Authors  | kamichal; aroberge (inspirator)
+Address:  Poland
+
+Contact:  use github contact form, please
+
+Authors:  kamichal; aroberge (inspirator)
+
