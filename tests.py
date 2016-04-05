@@ -69,13 +69,13 @@ def test_pretty_xml_1():
     print str(w)
     assert str(w) == """\
 <parent node="nodename">
-  <child1 color="#666"/>
-  <emb node="nodename">
-    <mc1 color="#666" st="some"/>
-    <mc2 color="#666" st="some"/>
-  </emb>
-  <child2/>
-  <child3 color="#123"/>
+    <child1 color="#666"/>
+    <emb node="nodename">
+        <mc1 color="#666" st="some"/>
+        <mc2 color="#666" st="some"/>
+    </emb>
+    <child2/>
+    <child3 color="#123"/>
 </parent>
 """
 
@@ -380,51 +380,56 @@ def test_style_definitions():
     svg_window.append(tekstt3)
 
     ref = """\
-<svg style="stroke-width: 0px; background-color: #8AC;" xmlns="http://www.w3.org/2000/svg"
-   height="100%" width="100%" preserveaspectratio="xMinYMin meet" xmlns:xlink="http://www.w3.org/1999/xlink"
+<svg style="stroke-width: 0px; background-color: #8AC;" xmlns="http://www.w3.org/2000/svg" 
+   height="100%" width="100%" preserveaspectratio="xMinYMin meet" xmlns:xlink="http://www.w3.org/1999/xlink" 
    viewbox="0 0 500 500">
 
-  <defs>
-    <style type="text/css">
-      <![CDATA[
-        .klasaA {
-          stroke-opacity: 0.4;
-          fill-opacity: 0.23;
-          rx: 5;
-          ry: 5;
-          stroke: green;
-          stroke-width: 0.6;
-          fill: green;
-        }
-        .klasaA:hover {
-          stroke-width: 1.2;
-          stroke: yellow;
-          fill-opacity: 0.35;
-          stroke-opacity: 0.3;
-          fill: green;
-        }
-      ]]>
-    </style>
-    <g class="klasaA" id="grupa1">
-      <circle cy="30" cx="0" r="53"/>
-      <rect y="-25" width="80" fill-opacity="0.5" x="-30" height="10"/>
-      <rect fill-opacity="0.8" rx="5" ry="5" height="20" width="60" y="0" x="-5"/>
-      <rect y="30" width="80" x="-40" height="70"/>
-      <text y="15" x="0" fill="red">?Hija</text>
-      <text y="37" x="-40" fill="black">Python</text>
-    </g>
-  </defs>
+    <defs>
+        <style type="text/css">
+          <![CDATA[
+            .klasaA {
+              stroke-opacity: 0.4;
+              fill-opacity: 0.23;
+              rx: 5;
+              ry: 5;
+              stroke: green;
+              stroke-width: 0.6;
+              fill: green;
+            }
+            .klasaA:hover {
+              stroke-width: 1.2;
+              stroke: yellow;
+              fill-opacity: 0.35;
+              stroke-opacity: 0.3;
+              fill: green;
+            }
+          ]]>
+        </style>
+        <g class="klasaA" id="grupa1">
+            <circle cy="30" cx="0" r="53"/>
+            <rect y="-25" width="80" fill-opacity="0.5" x="-30" height="10"/>
+            <rect fill-opacity="0.8" rx="5" ry="5" height="20" width="60" y="0" x="-5"/>
+            <rect y="30" width="80" x="-40" height="70"/>
+            <text y="15" x="0" fill="red">
+                ?Hija
+            </text>
+            <text y="37" x="-40" fill="black">
+                Python
+            </text>
+        </g>
+    </defs>
 
-  <a xlink:href="TestOtherUseCase.svg" id="tynlik">
-    <rect y="50" width="60" x="15" class="klasaA" height="20"/>
-  </a>
-  <use xlink:href="#grupa1" transform="translate(45, 130)"/>
-  <use xlink:href="#grupa1" transform="translate(180, 100) scale(0.6) rotate(45)"/>
-  <use xlink:href="#grupa1" transform="translate(55, 25) scale(0.4) rotate(-15.4) translate(50, 50)"/>
-  <use xlink:href="#grupa1" transform="translate(80, 90) scale(0.7) rotate(15.4) translate(50, 50)"/>
-  <use xlink:href="#grupa1" transform="translate(220, 80)"/>
-  <text y="17" class="klasaA" x="0">SVG</text>
+    <a xlink:href="TestOtherUseCase.svg" id="tynlik">
+        <rect y="50" width="60" x="15" class="klasaA" height="20"/>
+    </a>
+    <use xlink:href="#grupa1" transform="translate(45, 130)"/>
+    <use xlink:href="#grupa1" transform="translate(180, 100) scale(0.6) rotate(45)"/>
+    <use xlink:href="#grupa1" transform="translate(55, 25) scale(0.4) rotate(-15.4) translate(50, 50)"/>
+    <use xlink:href="#grupa1" transform="translate(80, 90) scale(0.7) rotate(15.4) translate(50, 50)"/>
+    <use xlink:href="#grupa1" transform="translate(220, 80)"/>
+    <text y="17" class="klasaA" x="0">
+        SVG
+    </text>
 </svg>
-
-    """
+"""
     _cmpXml(svg_window, ref)
