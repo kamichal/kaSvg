@@ -14,3 +14,10 @@ document containing svg diagrams.
 :Address: Poland 
 :Contact: use github contact form, please
 :Authors: kamichal; aroberge
+
+
+.. image:: _test_out/TestOtherUseCase.svg
+    :alt: Example of generated image
+    :width: 300
+    :height: 200
+    :align: center
