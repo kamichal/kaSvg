@@ -14,7 +14,7 @@ from formencode.doctest_xml_compare import xml_compare
 from tempfile import gettempdir
 
 
-from kaSvg import SvgWindow, SvgDefinitionsContainer, \
+from kaSvg import SvgWindow, SvgDefs, \
     XmlElement, DefineSvgGroup, ShapesGroup
 
 
@@ -84,7 +84,7 @@ def test_pretty_xml_2():
     x = XmlElement("id", node="nodename")
     y = XmlElement("y", node="be")
     z = XmlElement("z")
-    a = XmlElement("dd", node="tu")
+    a = XmlElement("dd", node="tu", text="some text here")
 
     a.append(y)
     a.append(y)
@@ -101,6 +101,7 @@ def test_pretty_xml_2():
         some text
     </p>
     <dd node="tu">
+        some text here
         <y node="be"/>
         <y node="be"/>
         <z/>
@@ -122,22 +123,9 @@ stroke-width="0px"
 background-color="#8AC"/>''')
 
 
-def test_empty_definitions():
-    w = SvgWindow(10, 20)
-    d = SvgDefinitionsContainer()
-    w.append(d)
-
-    _cmpXml(w, '''\
-<svg width="10" xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink" height="20">
-  <defs>
-  </defs>
-</svg>''')
-
-
 def test_definitions():
     w = SvgWindow(10, 20)
-    d = SvgDefinitionsContainer()
+    d = SvgDefs()
 
     k = XmlElement("circle", cx=0, cy=30, r=28, fill="red", stroke='#851', stroke_width=10, stroke_opacity=0.5)
 
@@ -160,31 +148,29 @@ def test_definitions():
 ''')
 
 def test_namespaced_xml():
-    w = SvgWindow(10, 20, prefix="ka")
-    d = SvgDefinitionsContainer(prefix="ka")
-    k = XmlElement("circle", prefix="ka", cx=0, cy=30, r=28)
-    p = XmlElement("rect", prefix="ka", x=-30, y=-5, width="80", height="10")
+    w = SvgWindow(10, 20, prefix="svg")
+    d = SvgDefs(prefix="svg")
+    k = XmlElement("circle", prefix="svg", cx=0, cy=30, r=28)
+    p = XmlElement("rect", prefix="svg", x=-30, y=-5, width="80", height="10")
 
     d.append(k)
     d.append(p)
     w.append(d)
-
+    print w
     assert str(w) == '''\
-<ka:svg width="10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+<svg:svg width="10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
    height="20">
-
-    <ka:defs>
-        <ka:circle cy="30" cx="0" r="28"/>
-        <ka:rect y="-5" width="80" x="-30" height="10"/>
-    </ka:defs>
-
-</ka:svg>
+    <svg:defs>
+        <svg:circle cy="30" cx="0" r="28"/>
+        <svg:rect y="-5" width="80" x="-30" height="10"/>
+    </svg:defs>
+</svg:svg>
 '''
 
 
 def test_definitions_and_usage():
     w = SvgWindow(10, 20)
-    d = SvgDefinitionsContainer()
+    d = SvgDefs()
 
     k = XmlElement("circle", cx=0, cy=30, r=28, fill="red")
 
@@ -213,7 +199,7 @@ def test_definitions_and_usage():
 
 def test_group_usage_1():
     w = SvgWindow(200, 100)
-    d = SvgDefinitionsContainer()
+    d = SvgDefs()
 
     k = XmlElement("circle", cx=0, cy=30, r=28, fill="red")
     p = XmlElement("rect", x=-30, y=-5, width="80", height="10")
@@ -244,7 +230,6 @@ def test_group_usage_1():
 ''')
 
 
-@pytest.mark.xfail
 def test_group_usage_2():
     w = SvgWindow(200, 100)
 
@@ -259,14 +244,12 @@ def test_group_usage_2():
     _cmpXml(w, '''\
 <svg width="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
    height="100">
-
   <defs>
     <g id="grupa1">
       <circle cy="30" cx="0" r="28" fill="red"/>
       <rect y="-5" width="80" x="-30" height="10"/>
     </g>
   </defs>
-
   <use xlink:href="#grupa1" transform="translate(12, 23)"/>
   <use xlink:href="#grupa1" transform="translate(24, 10)"/>
 </svg>
@@ -283,14 +266,14 @@ def test_xml_by_dict_or_kwargs():
 
 def test_definitions_and_usage_by_dict():
     w = SvgWindow(10, 20)
-    d = SvgDefinitionsContainer()
+    d = SvgDefs()
 
     dd = {'cx': 0, 'cy': 30, 'r': 28, 'fill': "red"}
     k = XmlElement("circle", dd=dd)
 
     _cmpXml(k, '<circle cy="30" cx="0" r="28" fill="red"/>')
 
-    dd = {"x":-30, "y":-5, "width": 80, "height": 10}
+    dd = {"x": -30, "y": -5, "width": 80, "height": 10}
 
     p = XmlElement("rect", dd=dd)
     d.append(k)
@@ -319,14 +302,14 @@ def test_svg_can_be_stored():
     tmpf = op.join(gettempdir(), 'tmp_kaSvg.svg')
 
     w = SvgWindow(10, 20)
-    d = SvgDefinitionsContainer()
+    d = SvgDefs()
 
     dd = {'cx': 0, 'cy': 30, 'r': 28, 'fill': "red"}
     k = XmlElement("circle", dd=dd)
 
     _cmpXml(k, '<circle cy="30" cx="0" r="28" fill="red"/>')
 
-    dd = {"x":-30, "y":-5, "width": 80, "height": 10}
+    dd = {"x": -30, "y": -5, "width": 80, "height": 10}
     p = XmlElement("rect", dd=dd)
 
     d.append(k)
@@ -345,21 +328,21 @@ def test_svg_can_be_stored():
 
 
 def test_style_definitions():
-    svgDefinitions = SvgDefinitionsContainer()
+    svgDefinitions = SvgDefs()
 
     svg_window = SvgWindow("100%", "100%", viewBox="0 0 500 500",
-                          preserveAspectRatio="xMinYMin meet",
-                          style='stroke-width: 0px; background-color: #8AC;')
+                           preserveAspectRatio="xMinYMin meet",
+                           style='stroke-width: 0px; background-color: #8AC;')
 
     svgDefinitions.createNewStyle(".klasaA",
-                               stroke="green", stroke_width=0.6,
-                               stroke_opacity=0.4,
-                               fill="green", fill_opacity=0.23, rx=5, ry=5)
+                                  stroke="green", stroke_width=0.6,
+                                  stroke_opacity=0.4,
+                                  fill="green", fill_opacity=0.23, rx=5, ry=5)
 
     svgDefinitions.createNewStyle(".klasaA:hover",
-                            stroke="yellow", stroke_width=1.2,
-                            stroke_opacity=0.3,
-                            fill="green", fill_opacity=0.35)
+                                  stroke="yellow", stroke_width=1.2,
+                                  stroke_opacity=0.3,
+                                  fill="green", fill_opacity=0.35)
 
     grupa1 = DefineSvgGroup("grupa1", svgDefinitions,
                             Class="klasaA")
@@ -405,27 +388,26 @@ def test_style_definitions():
 <svg style="stroke-width: 0px; background-color: #8AC;" xmlns="http://www.w3.org/2000/svg" 
    height="100%" width="100%" preserveaspectratio="xMinYMin meet" xmlns:xlink="http://www.w3.org/1999/xlink" 
    viewbox="0 0 500 500">
-
     <defs>
         <style type="text/css">
-          <![CDATA[
-            .klasaA {
-              stroke-opacity: 0.4;
-              fill-opacity: 0.23;
-              rx: 5;
-              ry: 5;
-              stroke: green;
-              stroke-width: 0.6;
-              fill: green;
-            }
-            .klasaA:hover {
-              stroke-width: 1.2;
-              stroke: yellow;
-              fill-opacity: 0.35;
-              stroke-opacity: 0.3;
-              fill: green;
-            }
-          ]]>
+            <![CDATA[
+                .klasaA {
+                  stroke-opacity: 0.4;
+                  fill-opacity: 0.23;
+                  rx: 5;
+                  ry: 5;
+                  stroke: green;
+                  stroke-width: 0.6;
+                  fill: green;
+                }
+                .klasaA:hover {
+                  stroke-width: 1.2;
+                  stroke: yellow;
+                  fill-opacity: 0.35;
+                  stroke-opacity: 0.3;
+                  fill: green;
+                }
+            ]]>
         </style>
         <g class="klasaA" id="grupa1">
             <circle cy="30" cx="0" r="53"/>
@@ -440,7 +422,6 @@ def test_style_definitions():
             </text>
         </g>
     </defs>
-
     <a xlink:href="TestOtherUseCase.svg" id="tynlik">
         <rect y="50" width="60" x="15" class="klasaA" height="20"/>
     </a>

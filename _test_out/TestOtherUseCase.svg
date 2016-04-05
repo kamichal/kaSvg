@@ -1,6 +1,5 @@
 <svg width="300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
    height="200">
-
     <defs>
         <circle stroke-width="0.8pt" cy="0" stroke="#851" cx="0" r="20" id="red_circle" fill="red"/>
         <g id="grupa1">
@@ -11,7 +10,6 @@
                height="14"/>
         </g>
     </defs>
-
     <use xlink:href="#circle2" transform="translate(31, 21)" fill="#120"/>
     <use xlink:href="#circle2" transform="translate(63, 42)" fill="#240"/>
     <use xlink:href="#circle2" transform="translate(94, 63)" fill="#360"/>

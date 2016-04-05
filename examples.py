@@ -6,11 +6,35 @@ Created on 29 Mar 2016
 @author: kamichal
 '''
 
-from kaSvg import SvgWindow, SvgDefinitionsContainer, \
-                  XmlElement, DefineSvgGroup, XmlComment
+from kaSvg import SvgWindow, SvgDefs, \
+    XmlElement, DefineSvgGroup, XmlComment
 
+def simple_example():
 
-def __TestSimpliestUseCase():
+    from kaSvg import SvgWindow, XmlElement
+    w = 300; h = 200; rw = 100; rh = 80; fh = 30
+    window = SvgWindow(w, h, stroke_width='0.7px', background_color='#8AF')
+
+    rect = XmlElement("rect", x=(w - rw) / 2, y=(h - rh) / 2,
+                      width=rw, height=rh,
+                      stroke="green", fill_opacity=0.2)
+
+    circ = XmlElement("circle", cx=w * 0.2568, cy=h * 0.3234,
+                      r=fh * 3, stroke="#deb", fill = "#bed",
+                      stroke_width="1.3px", fill_opacity=0.3)
+
+    text = XmlElement("text", x=w / 2, y=h / 2, text="SVG",
+                      text_anchor="middle", font_size=fh,
+                      style="font-family: Times New Roman; \
+                      stroke: #deb; fill: #0000cd; font-weight:700;")
+
+    window.append(circ)
+    window.append(rect)
+    window.append(text)
+
+    window.store("_test_out/SimpleExample.svg")
+
+def simple_example_2():
 
     filename = "_test_out/TestSimpliestUseCase.svg"
 
@@ -18,7 +42,7 @@ def __TestSimpliestUseCase():
                            stroke_width='0px',
                            background_color='#8AC')
 
-    svgDefinitions = SvgDefinitionsContainer()
+    svgDefinitions = SvgDefs()
 
     # define elements to be used
     kolko = XmlElement("circle", cx=0, cy=30, r=28, fill="red",
@@ -53,17 +77,14 @@ def __TestSimpliestUseCase():
     svg_window.useElement("grupa1", 200, 100,
                           transform="scale(0.6) rotate(115.4)")
 
-#     svg_window.append(prostokat3)
-
-
     svg_window.store(filename)
     print "\n-- %s -------------------------\n%s" % (filename, svg_window)
 
-def __TestCSSUseCase():
+def CSS_example():
 
     filename = "_test_out/TestCSSUseCase.svg"
 
-    svgDefinitions = SvgDefinitionsContainer()
+    svgDefinitions = SvgDefs()
 
     svg_window = SvgWindow("100%", "100%", viewBox="0 0 500 500",
                            preserveAspectRatio="xMinYMin meet",
@@ -109,7 +130,6 @@ def __TestCSSUseCase():
     alink._attributes["xlink:href"] = "TestOtherUseCase.svg"
     alink.append(XmlElement("rect", x=15, y=50, width=60, height=20, Class="klasaA"))
 
-
     svg_window.append(svgDefinitions)
     svg_window.append(alink)
     svg_window.useElement("grupa1", 45, 130)
@@ -125,13 +145,13 @@ def __TestCSSUseCase():
     print "\n-- %s -------------------------\n%s" % (filename, svg_window)
 
 
-def __TestOtherUseCase():
+def example_3():
     # A good practice is to define svg objects, and insert them
     # using the definition; this is overkill for this example, but it
     # provides a test of the class.
 
     svg_window = SvgWindow(300, 200)
-    svgDefinitions = SvgDefinitionsContainer()
+    svgDefinitions = SvgDefs()
     svg_window.append(svgDefinitions)
 
     kolko = XmlElement("circle", cx=0, cy=0, r=20, fill="red", id="red_circle", stroke='#851')
@@ -171,6 +191,7 @@ def __TestOtherUseCase():
 
 if __name__ == "__main__":
 
-    __TestSimpliestUseCase()
-    __TestCSSUseCase()
-    __TestOtherUseCase()
+    simple_example()
+    simple_example_2()
+    CSS_example()
+    example_3()

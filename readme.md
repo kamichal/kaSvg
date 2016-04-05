@@ -1,11 +1,9 @@
 # kaSvg
 ## Lightweigth python SVG generation tool
----
 
 This module contains all the classes required to easily create an xml
 document containing svg diagrams.
 
-***
 such a code:
 ```python
 def simple_example():
