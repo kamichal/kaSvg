@@ -31,7 +31,7 @@ class XmlElement(object):
         self._subs = []
         self._attrs = {}
         if attributes:
-            if len(attributes) == 1 and 'dd' in attributes:
+            if 'dd' in attributes:
                 if isinstance(attributes['dd'], dict):
                     attributes = attributes['dd']
             for key in attributes:
@@ -88,57 +88,53 @@ class XmlElement(object):
             ff.write(str(self))
 
 
-class SvgStyleDefinitionEntry(object):
-    def __init__(self, name, **attrList):
-        self.name = name
-        self._attrs = {}
-        if attrList is not None:
-            for attKey in attrList.keys():
-                fixattr = attKey.replace('_', '-').lower()
-                self._attrs[fixattr] = attrList[attKey]
-
-    def indRepr(self, indent_level=0):
-        render = ['%s%s {\n' % (_indentStr(indent_level), self.name)]
-        for att in self._attrs:
-            render.append('%s%s: %s;\n' % (_indentStr(indent_level + 1), att, self._attrs[att]))
-        render.append('%s}\n' % (_indentStr(indent_level)))
-        return ''.join(render)
-
-    def append(self, **attrList):
-        '''not sure if it's ok'''
-        # self._attrs = {self._attrs, attrList}
-        self._attrs = dict(zip(self._attrs, attrList))
-
-
-class SvgStylesContainer(XmlElement):
-    def __init__(self):
-        XmlElement.__init__(self, 'style', type="text/css")
-
-    def append(self, _SvgStyleDefinitionEntry):
-        self._subs.append(_SvgStyleDefinitionEntry)
-
-    def _reprSubelements(self, indent_level):
-        if self._subs:
-            s = []
-            for elem in self._subs:
-                s.append('%s' % elem.indRepr(indent_level + 1))
-            stylesstr = ''.join(filter(None, s))
-            return '{0}<![CDATA[\n{1}{0}]]>\n'.format(_indentStr(indent_level),
-                                                      stylesstr)
-        else:
-            return ''
-
-    def isEmpty(self):
-        return not self._subs
-
 class SvgDefs(XmlElement):
+    class SvgCssClass(object):
+        def __init__(self, name, **attrList):
+            self.name = name
+            self._attrs = {}
+            if attrList is not None:
+                for attKey in attrList.keys():
+                    fixattr = attKey.replace('_', '-').lower()
+                    self._attrs[fixattr] = attrList[attKey]
+
+        def indRepr(self, indent_level=0):
+            render = ['%s%s {\n' % (_indentStr(indent_level), self.name)]
+            for att in self._attrs:
+                render.append('%s%s: %s;\n' % (_indentStr(indent_level + 1), att, self._attrs[att]))
+            render.append('%s}\n' % (_indentStr(indent_level)))
+            return ''.join(render)
+
+        def append(self, **attrList):
+            ''' TODO: not sure if it's ok'''
+            # self._attrs = {self._attrs, **attrList}
+            self._attrs = dict(zip(self._attrs, attrList))
+
+    class SvgCssContainer(XmlElement):
+        '''http://blogs.adobe.com/webplatform/2013/01/08/svg-styling/'''
+        def __init__(self):
+            XmlElement.__init__(self, 'style', type="text/css")
+
+        def append(self, _SvgStyleDefinitionEntry):
+            self._subs.append(_SvgStyleDefinitionEntry)
+
+        def _reprSubelements(self, indent_level):
+            if self._subs:
+                s = []
+                for elem in self._subs:
+                    s.append('%s' % elem.indRepr(indent_level + 1))
+                stylesstr = ''.join(filter(None, s))
+                return '{0}<![CDATA[\n{1}{0}]]>\n'.format(_indentStr(indent_level),
+                                                          stylesstr)
+            else:
+                return ''
+
+        def isEmpty(self):
+            return not self._subs
+
     def __init__(self, **attributes):
         XmlElement.__init__(self, 'defs', **attributes)
-        self._styles = SvgStylesContainer()
-
-    def createNewStyle(self, name, **attrList):
-        '''http://blogs.adobe.com/webplatform/2013/01/08/svg-styling/'''
-        self._styles.append(SvgStyleDefinitionEntry(name, **attrList))
+        self._styles = self.SvgCssContainer()
 
     def isEmpty(self):
         return not self._subs and self._styles.isEmpty()
@@ -159,15 +155,7 @@ class SvgWindow(XmlElement):
         XmlElement.__init__(self, 'svg', **attributes)
         self._attrs['xmlns'] = 'http://www.w3.org/2000/svg'
         self._attrs['xmlns:xlink'] = 'http://www.w3.org/1999/xlink'
-        self._defs = SvgDefs()
-
-    def append(self, other):
-        if isinstance(other, SvgStyleDefinitionEntry):
-            self._defs._styles.append(other)
-        elif isinstance(other, ShapesGroup):
-            self._defs.append(other)
-        else:
-            self._subs.append(other)
+        self._defs = SvgDefs(prefix=self._prefix)
 
     def _reprSubelements(self, indent_level):
         r = []
@@ -185,30 +173,27 @@ class SvgWindow(XmlElement):
         return self.indRepr(0)
 
     def useElementById(self, xlinkId, x, y, **attributes):
+        if not isinstance(xlinkId, str):
+            raise kaSvgError('ussage by ID requires the ID to be a string')
         extraTransform = ''
         if attributes and 'transform' in attributes:
             extraTransform = extraTransform + ' ' + attributes['transform']
         attributes['transform'] = 'translate(%g, %g)%s' % (x, y, extraTransform)
         attributes['xlink:href'] = '#%s' % (xlinkId)
-        self.append(XmlElement('use', **attributes))
+        self.append(XmlElement('use', prefix=self._prefix, **attributes))
 
     def use(self, element, x, y, **attributes):
         if not isinstance(element, XmlElement):
             raise kaSvgError('ussage allows only XmlElement type')
-        if element not in self._defs._subs:
-            self._defs.append(element)
         if 'id' not in element._attrs:
             element.addAttr(id=_randomID())
         xlinkId = element._attrs['id']
+        if element not in self._defs._subs:
+            self._defs.append(element)
         self.useElementById(xlinkId, x, y, **attributes)
 
-
-class DefineSvgGroup(XmlElement):
-    def __init__(self, defId, SvgDefContainer, **attributes):
-        attributes['id'] = defId
-        XmlElement.__init__(self, 'g', **attributes)
-        SvgDefContainer.append(self)
-
+    def newStyle(self, name, **attrList):
+        self._defs._styles.append(self._defs.SvgCssClass(name, **attrList))
 
 class ShapesGroup(XmlElement):
     def __init__(self, group_ID, *objects, **attributes):
