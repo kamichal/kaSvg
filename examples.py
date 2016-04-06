@@ -68,13 +68,13 @@ def simple_example_2():
 
     svg_window.append(svgDefinitions)
 
-    svg_window.useElement("grupa1", 45, 130)
+    svg_window.useElementById("grupa1", 45, 130)
 
-    svg_window.useElement("grupa1", 180, 100,
+    svg_window.useElementById("grupa1", 180, 100,
                           transform="scale(1.123) rotate(45)")
-    svg_window.useElement("grupa1", 55, 25,
+    svg_window.useElementById("grupa1", 55, 25,
                           transform="scale(0.4) rotate(-15.4) translate(50, 50)")
-    svg_window.useElement("grupa1", 200, 100,
+    svg_window.useElementById("grupa1", 200, 100,
                           transform="scale(0.6) rotate(115.4)")
 
     svg_window.store(filename)
@@ -132,11 +132,11 @@ def CSS_example():
 
     svg_window.append(svgDefinitions)
     svg_window.append(alink)
-    svg_window.useElement("grupa1", 45, 130)
-    svg_window.useElement("grupa1", 180, 100, transform="scale(0.6) rotate(45)")
-    svg_window.useElement("grupa1", 55, 25, transform="scale(0.4) rotate(-15.4) translate(50, 50)")
-    svg_window.useElement("grupa1", 80, 90, transform="scale(0.7) rotate(15.4) translate(50, 50)")
-    svg_window.useElement("grupa1", 220, 80)
+    svg_window.useElementById("grupa1", 45, 130)
+    svg_window.useElementById("grupa1", 180, 100, transform="scale(0.6) rotate(45)")
+    svg_window.useElementById("grupa1", 55, 25, transform="scale(0.4) rotate(-15.4) translate(50, 50)")
+    svg_window.useElementById("grupa1", 80, 90, transform="scale(0.7) rotate(15.4) translate(50, 50)")
+    svg_window.useElementById("grupa1", 220, 80)
 
     tekstt3 = XmlElement("text", x="0", y="17", text="SVG", Class="klasaA")
     svg_window.append(tekstt3)
@@ -175,15 +175,15 @@ def example_3():
 
     # we now create an svg object, that will make use of the definition above.
     for it in range(1, 7):
-        svg_window.useElement("circle2", 63 * it / 2, 63 * it / 3, fill="#%d" % (it * 100 + it * 20))
-    svg_window.useElement("grupa1", 30, 120)
+        svg_window.useElementById("circle2", 63 * it / 2, 63 * it / 3, fill="#%d" % (it * 100 + it * 20))
+    svg_window.useElementById("grupa1", 30, 120)
     for it in range(1, 8):
-        svg_window.useElement("circle2", 200 - 17 * it, 30 * it,
+        svg_window.useElementById("circle2", 200 - 17 * it, 30 * it,
                               fill="#%d" % (it * 4 + it * 10), transform="scale(%g)" % (it / 8.0))
 
-    svg_window.useElement("red_circle", 16, 20)
-    svg_window.useElement("circle2", 190.34, 6.66, fill="magenta")
-    svg_window.useElement("red_circle", 10, 45)
+    svg_window.useElementById("red_circle", 16, 20)
+    svg_window.useElementById("circle2", 190.34, 6.66, fill="magenta")
+    svg_window.useElementById("red_circle", 10, 45)
 
     filename = "_test_out/TestOtherUseCase.svg"
     svg_window.store(filename)

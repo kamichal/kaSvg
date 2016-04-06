@@ -14,12 +14,15 @@ from textwrap import TextWrapper
 _MAX_LINE_WIDTH = 80
 
 def _indentStr(level):
-    return level * '  '
+    return level * '    '
 
 def _randomID():
     s = 'abcdefghijklmnopqrstuvwxyz'
     s += s.upper() + '1234567890' + '_' * 30
     return 'id_' + ''.join(choice(s) for _ in xrange(10))
+
+class kaSvgError(Exception):
+    pass
 
 class XmlElement(object):
     def __init__(self, tag, prefix='', **attributes):
@@ -54,18 +57,18 @@ class XmlElement(object):
     def _reprAttributes(self, indent_level):
         r = ['%s="%s"' % (k, self._attrs[k]) for k in self._attrs if k != 'text']
         w = TextWrapper(width=_MAX_LINE_WIDTH, break_on_hyphens=False,
-                              subsequent_indent=_indentStr(indent_level))
+                        subsequent_indent=_indentStr(indent_level))
         l = w.wrap(' '.join(r))
         return '\n'.join(l)
 
     def _reprSubelements(self, indent_level):
         r = []
         if 'text' in self._attrs:
-            r.append('%s%s\n' % (_indentStr(indent_level + 1),
+            r.append('%s%s\n' % (_indentStr(indent_level),
                                  self._attrs['text']))
         if self._subs:
             for elem in self._subs:
-                r.append('%s' % elem.indRepr(indent_level + 1))
+                r.append('%s' % elem.indRepr(indent_level))
         return ''.join(filter(None, r))
 
     def indRepr(self, indent_level=0):
@@ -121,7 +124,7 @@ class SvgStylesContainer(XmlElement):
                 s.append('%s' % elem.indRepr(indent_level + 1))
             stylesstr = ''.join(filter(None, s))
             return '{0}<![CDATA[\n{1}{0}]]>\n'.format(_indentStr(indent_level),
-                                                    stylesstr)
+                                                      stylesstr)
         else:
             return ''
 
@@ -143,10 +146,10 @@ class SvgDefs(XmlElement):
     def _reprSubelements(self, indent_level):
         r = []
         if not self._styles.isEmpty():
-            r.append(self._styles.indRepr(indent_level + 1))
+            r.append(self._styles.indRepr(indent_level))
         if self._subs:
             for elem in self._subs:
-                r.append('%s' % elem.indRepr(indent_level + 1))
+                r.append('%s' % elem.indRepr(indent_level))
         return ''.join(r)
 
 class SvgWindow(XmlElement):
@@ -171,25 +174,33 @@ class SvgWindow(XmlElement):
         if not self._defs.isEmpty():
             r.append(self._defs.indRepr(indent_level))
         if 'text' in self._attrs:
-            r.append('%s%s\n' % (_indentStr(indent_level + 1),
+            r.append('%s%s\n' % (_indentStr(indent_level),
                                  self._attrs['text']))
         if self._subs:
             for elem in self._subs:
-                r.append('%s' % elem.indRepr(indent_level + 1))
+                r.append('%s' % elem.indRepr(indent_level))
         return ''.join(filter(None, r))
 
     def __repr__(self):
         return self.indRepr(0)
 
-    def useElement(self, xlinkId, x, y, **attributes):
+    def useElementById(self, xlinkId, x, y, **attributes):
         extraTransform = ''
-        for att in attributes:
-            if att == 'transform':
-                extraTransform = extraTransform + ' ' + attributes[att]
-                break
+        if attributes and 'transform' in attributes:
+            extraTransform = extraTransform + ' ' + attributes['transform']
         attributes['transform'] = 'translate(%g, %g)%s' % (x, y, extraTransform)
         attributes['xlink:href'] = '#%s' % (xlinkId)
         self.append(XmlElement('use', **attributes))
+
+    def use(self, element, x, y, **attributes):
+        if not isinstance(element, XmlElement):
+            raise kaSvgError('ussage allows only XmlElement type')
+        if element not in self._defs._subs:
+            self._defs.append(element)
+        if 'id' not in element._attrs:
+            element.addAttr(id=_randomID())
+        xlinkId = element._attrs['id']
+        self.useElementById(xlinkId, x, y, **attributes)
 
 
 class DefineSvgGroup(XmlElement):
