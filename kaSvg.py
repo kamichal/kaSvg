@@ -53,10 +53,13 @@ class XmlElement(object):
 
     def _reprAttributes(self, indent_level):
         r = ['%s="%s"' % (k, self._attrs[k]) for k in self._attrs if k != 'text']
-        w = TextWrapper(width=_MAX_LINE_WIDTH, break_on_hyphens=False,
+        if _MAX_LINE_WIDTH > 0:
+            w = TextWrapper(width=_MAX_LINE_WIDTH, break_on_hyphens=False,
                               subsequent_indent=_indentStr(indent_level))
-        l = w.wrap(' '.join(r))
-        return '\n'.join(l)
+            return w.fill(' '.join(r))
+        else:
+            return ' '.join(r)
+            
 
     def _reprSubelements(self, indent_level):
         r = []

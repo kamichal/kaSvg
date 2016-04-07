@@ -1,3 +1,4 @@
+#!/usr/bin/python
 '''
 Created on 1 kwi 2016
 
@@ -7,15 +8,14 @@ Created on 1 kwi 2016
 
 import sys
 from os import path as op
-import pytest
+# import pytest
 
 from lxml import etree
 from formencode.doctest_xml_compare import xml_compare
 from tempfile import gettempdir
 
 
-from kaSvg import SvgWindow, SvgDefs, \
-    XmlElement, DefineSvgGroup, ShapesGroup
+from kaSvg import SvgWindow, SvgDefs, XmlElement, DefineSvgGroup, ShapesGroup
 
 
 def _cmpXml(got, ref):
