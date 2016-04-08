@@ -21,8 +21,9 @@ def _randomID():
     s += s.upper() + '1234567890' + '_' * 30
     return 'id_' + ''.join(choice(s) for _ in xrange(10))
 
-class kaSvgError(Exception):
+class KaSvgError(Exception):
     pass
+
 
 class XmlElement(object):
     def __init__(self, tag, prefix='', **attributes):
@@ -88,6 +89,27 @@ class XmlElement(object):
             ff.write(str(self))
 
 
+class SvgElement(XmlElement):
+    def __init__(self, tag, prefix='', **attributes):
+        XmlElement.__init__(self, tag, prefix, **attributes)
+
+    def style(self, *obj_or_id):
+        style_objs = [x for x in obj_or_id if isinstance(x, SvgDefs.SvgCssClass)]
+        style_ids = [x for x in obj_or_id if isinstance(x, str)]
+        for style_obj in style_objs:
+            name = style_obj.name.replace('.', '')
+            if 'class' not in self._attrs:
+                self._attrs['class'] = name
+            else:
+                self._attrs['class'] += ' %' % name
+        for style_id in style_ids:
+            name = style_id.replace('.', '')
+            if 'class' not in self._attrs:
+                self._attrs['class'] = style_id
+            else:
+                self._attrs['class'] += ' %' % style_id
+
+
 class SvgDefs(XmlElement):
     class SvgCssClass(object):
         def __init__(self, name, **attrList):
@@ -99,10 +121,12 @@ class SvgDefs(XmlElement):
                     self._attrs[fixattr] = attrList[attKey]
 
         def indRepr(self, indent_level=0):
-            render = ['%s%s {\n' % (_indentStr(indent_level), self.name)]
+            ind1 = _indentStr(indent_level)
+            ind2 = _indentStr(indent_level + 1)
+            render = ['%s%s {\n' % (ind1, self.name)]
             for att in self._attrs:
-                render.append('%s%s: %s;\n' % (_indentStr(indent_level + 1), att, self._attrs[att]))
-            render.append('%s}\n' % (_indentStr(indent_level)))
+                render.append('%s%s: %s;\n' % (ind2, att, self._attrs[att]))
+            render.append('%s}\n' % ind1)
             return ''.join(render)
 
         def append(self, **attrList):
@@ -174,7 +198,7 @@ class SvgWindow(XmlElement):
 
     def useElementById(self, xlinkId, x, y, **attributes):
         if not isinstance(xlinkId, str):
-            raise kaSvgError('ussage by ID requires the ID to be a string')
+            raise KaSvgError('ussage by ID requires the ID to be a string')
         extraTransform = ''
         if attributes and 'transform' in attributes:
             extraTransform = extraTransform + ' ' + attributes['transform']
@@ -184,16 +208,19 @@ class SvgWindow(XmlElement):
 
     def use(self, element, x, y, **attributes):
         if not isinstance(element, XmlElement):
-            raise kaSvgError('ussage allows only XmlElement type')
+            raise KaSvgError('ussage allows only XmlElement type')
         if 'id' not in element._attrs:
             element.addAttr(id=_randomID())
         xlinkId = element._attrs['id']
         if element not in self._defs._subs:
             self._defs.append(element)
         self.useElementById(xlinkId, x, y, **attributes)
+        return element
 
     def newStyle(self, name, **attrList):
-        self._defs._styles.append(self._defs.SvgCssClass(name, **attrList))
+        ns = self._defs.SvgCssClass(name, **attrList)
+        self._defs._styles.append(ns)
+        return ns
 
 class ShapesGroup(XmlElement):
     def __init__(self, group_ID, *objects, **attributes):
