@@ -26,19 +26,19 @@ def _cmpXml(got, ref):
 
 
 def test_empty_xml_element():
-    w = XmlElement("id")
+    w = SvgElement("id")
     _cmpXml(w, """<id/>""")
 
 
 def test_simple_xml_element():
-    w = XmlElement("id", node="nodename")
+    w = SvgElement("id", node="nodename")
     _cmpXml(w, """<id node="nodename"/>""")
 
 
 def test_parent_xml_element():
-    w = XmlElement("id", node="nodename")
-    w.append(XmlElement("child1", color="#666"))
-    w.append(XmlElement("child2", color="#123"))
+    w = SvgElement("id", node="nodename")
+    w.append(SvgElement("child1", color="#666"))
+    w.append(SvgElement("child2", color="#123"))
     _cmpXml(w, """\
 <id node="nodename">
     <child1 color= "#666"/>
@@ -55,14 +55,14 @@ height="234"/>''')
 
 
 def test_pretty_xml_1():
-    w = XmlElement("parent", node="nodename", long_key_and_val="this is long value of the field quite very long")
-    em = XmlElement("emb", node="nodename")
-    em.append(XmlElement("mc1", color="#666", st="some"))
-    em.append(XmlElement("mc2", color="#666", st="some"))
-    w.append(XmlElement("child1", color="#666"))
+    w = SvgElement("parent", node="nodename", long_key_and_val="this is long value of the field quite very long")
+    em = SvgElement("emb", node="nodename")
+    em.append(SvgElement("mc1", color="#666", st="some"))
+    em.append(SvgElement("mc2", color="#666", st="some"))
+    w.append(SvgElement("child1", color="#666"))
     w.append(em)
-    w.append(XmlElement("child2"))
-    w.append(XmlElement("child3", color="#123"))
+    w.append(SvgElement("child2"))
+    w.append(SvgElement("child3", color="#123"))
 
     print str(w)
     assert str(w) == """\
@@ -80,16 +80,16 @@ def test_pretty_xml_1():
 
 
 def test_pretty_xml_2():
-    x = XmlElement("id", node="nodename")
-    y = XmlElement("y", node="be")
-    z = XmlElement("z")
-    a = XmlElement("dd", node="tu", text="some text here")
+    x = SvgElement("id", node="nodename")
+    y = SvgElement("y", node="be")
+    z = SvgElement("z")
+    a = SvgElement("dd", node="tu", text="some text here")
 
     a.append(y)
     a.append(y)
     a.append(z)
-    x.append(XmlElement('empty'))
-    x.append(XmlElement('p', text="some text"))
+    x.append(SvgElement('empty'))
+    x.append(SvgElement('p', text="some text"))
     x.append(a)
 
     print x
@@ -121,8 +121,8 @@ def test_window_params():
 
 def test_definitions():
     w = SvgWindow(10, 20)
-    k = XmlElement("circle", id="a", cx=0, cy=30, r=28, fill="red", stroke='#851', stroke_width=10, stroke_opacity=0.5)
-    p = XmlElement("rect", id="b", x=-30, y=-5, width="80", height="10")
+    k = SvgElement("circle", id="a", cx=0, cy=30, r=28, fill="red", stroke='#851', stroke_width=10, stroke_opacity=0.5)
+    p = SvgElement("rect", id="b", x=-30, y=-5, width="80", height="10")
     w.use(k, 0, 0)
     w.use(p, 0, 0)
 
@@ -143,13 +143,13 @@ def test_definitions():
 def test_pretty_svg():
     w = SvgWindow(200, 100)
 
-    k = XmlElement("circle", id="a", cx=0, cy=30, r=28, fill="red")
-    p = XmlElement("rect", x=-30, y=-5, width="80", height="10")
+    k = SvgElement("circle", id="a", cx=0, cy=30, r=28, fill="red")
+    p = SvgElement("rect", x=-30, y=-5, width="80", height="10")
 
     g = ShapesGroup("group1", k, p)
     w.use(g, 12, 23)
     w.use(g, 34, 45)
-    w.use(XmlElement("rect", x=0, y=0, id="re", width="80", height="10"), 45, 56)
+    w.use(SvgElement("rect", x=0, y=0, id="re", width="80", height="10"), 45, 56)
     w.use(k, 6, 6)
     w.useElementById("group1", 24, 10)
 
@@ -160,9 +160,9 @@ def test_pretty_svg():
     <defs>
         <g id="group1">
             <circle cy="30" cx="0" r="28" id="a" fill="red"/>
-            <rect y="-5" width="80" x="-30" height="10"/>
+            <rect y="-5" width="80" height="10" x="-30"/>
         </g>
-        <rect y="0" width="80" x="0" id="re" height="10"/>
+        <rect y="0" width="80" height="10" id="re" x="0"/>
         <circle cy="30" cx="0" r="28" id="a" fill="red"/>
     </defs>
     <use xlink:href="#group1" transform="translate(12, 23)"/>
@@ -176,8 +176,8 @@ def test_pretty_svg():
 
 def test_namespaced_xml():
     w = SvgWindow(10, 20, prefix="svg")
-    k = XmlElement("circle", id='a', prefix="svg", cx=0, cy=30, r=28)
-    p = XmlElement("rect", id='b', prefix="svg", x=-30, y=-5, width="80", height="10")
+    k = SvgElement("circle", id='a', prefix="svg", cx=0, cy=30, r=28)
+    p = SvgElement("rect", id='b', prefix="svg", x=-30, y=-5, width="80", height="10")
 
     w.use(k, 0, 0)
     w.use(p, 0, 0)
@@ -187,7 +187,7 @@ def test_namespaced_xml():
     xmlns:xlink="http://www.w3.org/1999/xlink" height="20">
     <svg:defs>
         <svg:circle cy="30" cx="0" r="28" id="a"/>
-        <svg:rect y="-5" width="80" height="10" id="b" x="-30"/>
+        <svg:rect y="-5" width="80" x="-30" id="b" height="10"/>
     </svg:defs>
     <svg:use xlink:href="#a" transform="translate(0, 0)"/>
     <svg:use xlink:href="#b" transform="translate(0, 0)"/>
@@ -198,8 +198,8 @@ def test_namespaced_xml():
 def test_definitions_and_usage():
     w = SvgWindow(10, 20)
 
-    k = XmlElement("circle", id='k', cx=0, cy=30, r=28, fill="red")
-    p = XmlElement("rect", id='p', x=-30, y=-5, width="80", height="10")
+    k = SvgElement("circle", id='k', cx=0, cy=30, r=28, fill="red")
+    p = SvgElement("rect", id='p', x=-30, y=-5, width="80", height="10")
 
     w.use(k, 12, 23)
     w.use(p, 24, 10)
@@ -220,13 +220,13 @@ def test_definitions_and_usage():
 def test_group_usage_1():
     w = SvgWindow(200, 100)
 
-    k = XmlElement("circle", cx=0, cy=30, r=28, fill="red")
-    p = XmlElement("rect", x=-30, y=-5, width="80", height="10")
+    k = SvgElement("circle", cx=0, cy=30, r=28, fill="red")
+    p = SvgElement("rect", x=-30, y=-5, width="80", height="10")
 
     g = ShapesGroup("grupa1", k, p)
     w.use(g, 12, 23)
     w.use(g, 34, 45)
-    w.use(XmlElement("rect", x=0, y=0, id="re", width="80", height="10"), 45, 56)
+    w.use(SvgElement("rect", x=0, y=0, id="re", width="80", height="10"), 45, 56)
     w.useElementById("grupa1", 24, 10)
 
     _cmpXml(w, '''\
@@ -250,8 +250,8 @@ def test_group_usage_1():
 def test_group_usage_2():
     w = SvgWindow(200, 100)
 
-    k = XmlElement("circle", cx=0, cy=30, r=28, fill="red")
-    p = XmlElement("rect", x=-30, y=-5, width="80", height="10")
+    k = SvgElement("circle", cx=0, cy=30, r=28, fill="red")
+    p = SvgElement("rect", x=-30, y=-5, width="80", height="10")
 
     w.use(ShapesGroup("grupa1", k, p), 23, 4)
 
@@ -275,8 +275,8 @@ def test_group_usage_2():
 
 def test_xml_by_dict_or_kwargs():
     d = {'cx': 0, 'cy': 30, 'r': 28, 'fill': "red"}
-    k = XmlElement("circle", dd=d)
-    u = XmlElement("circle", cx=0, cy=30, r=28, fill="red")
+    k = SvgElement("circle", dd=d)
+    u = SvgElement("circle", cx=0, cy=30, r=28, fill="red")
     _cmpXml(k, '<circle cy="30" cx="0" r="28" fill="red"/>')
     _cmpXml(k, u)
 
@@ -284,10 +284,10 @@ def test_xml_by_dict_or_kwargs():
 def test_definitions_and_usage_by_dict():
     w = SvgWindow(10, 20)
     dd = {"id":"k", 'cx': 0, 'cy': 30, 'r': 28, 'fill': "red"}
-    k = XmlElement("circle", dd=dd, id='k')
+    k = SvgElement("circle", dd=dd, id='k')
 
     dd = {"id":"p", "x":-30, "y":-5, "width": 80, "height": 10}
-    p = XmlElement("rect", dd=dd)
+    p = SvgElement("rect", dd=dd)
 
     _cmpXml(k, '<circle cy="30" cx="0" r="28" id="k" fill="red"/>')
 
@@ -311,8 +311,8 @@ def test_svg_can_be_stored():
     tmpf = op.join(gettempdir(), 'tmp_kaSvg.svg')
 
     w = SvgWindow(10, 20)
-    k = XmlElement("circle")
-    p = XmlElement("rect")
+    k = SvgElement("circle")
+    p = SvgElement("rect")
 
     w.use(k, 12, 23)
     w.use(p, 24, 10)
@@ -340,33 +340,27 @@ def test_style_definitions():
                         stroke_opacity=0.3,
                         fill="green", fill_opacity=0.35)
 
-    grupa1 = ShapesGroup("grupa1", Class="klasaA")
+    kolko = SvgElement("circle", cx=0, cy=30, r=53)
 
-    kolko = XmlElement("circle", cx=0, cy=30, r=53)
-
-    prostokat = XmlElement("rect", x=-30, y=-25,
+    prostokat = SvgElement("rect", x=-30, y=-25,
                            width="80", height="10",
                            fill_opacity=0.5)
 
-    prostokat2 = XmlElement("rect", x=-5, y=0, width=60, height=20,
+    prostokat2 = SvgElement("rect", x=-5, y=0, width=60, height=20,
                             rx=5, ry=5,
                             fill_opacity=0.8)
 
-    prostokat3 = XmlElement("rect", x=-40, y=30, width="80", height="70")
+    prostokat3 = SvgElement("rect", x=-40, y=30, width="80", height="70")
 
-    tekstt = XmlElement("text", x="0", y="15", fill="red", text="?Hija")
-    tekstt2 = XmlElement("text", x="-40", y="37", fill="black", text="Python")
+    tekstt = SvgElement("text", x="0", y="15", fill="red", text="?Hija")
+    tekstt2 = SvgElement("text", x="-40", y="37", fill="black", text="Python")
 
-    grupa1.append(kolko)
-    grupa1.append(prostokat)
-    grupa1.append(prostokat2)
-    grupa1.append(prostokat3)
-    grupa1.append(tekstt)
-    grupa1.append(tekstt2)
+    grupa1 = ShapesGroup("grupa1", kolko, prostokat, prostokat2,
+                         prostokat3, tekstt, tekstt2, Class="klasaA")
 
-    alink = XmlElement("a", id="tynlik")
+    alink = SvgElement("a", id="tynlik")
     alink._attrs["xlink:href"] = "TestOtherUseCase.svg"
-    alink.append(XmlElement("rect", x=15, y=50, width=60, height=20, Class="klasaA"))
+    alink.append(SvgElement("rect", x=15, y=50, width=60, height=20, Class="klasaA"))
 
     svg_window.append(alink)
     svg_window.use(grupa1, 45, 130)
@@ -375,7 +369,7 @@ def test_style_definitions():
     svg_window.use(grupa1, 80, 90, transform="scale(0.7) rotate(15.4) translate(50, 50)")
     svg_window.use(grupa1, 220, 80)
 
-    tekstt3 = XmlElement("text", x="0", y="17", text="SVG", Class="klasaA")
+    tekstt3 = SvgElement("text", x="0", y="17", text="SVG", Class="klasaA")
     svg_window.append(tekstt3)
 
     ref = """\
@@ -433,3 +427,63 @@ def test_style_definitions():
 </svg>
 """
     _cmpXml(svg_window, ref)
+
+
+def test_styles():
+    w = SvgWindow("100%", "100%", viewBox="0 0 500 500",
+                  preserveAspectRatio="xMinYMin meet",
+                  style='stroke-width: 0px; background-color: #8AC;')
+
+    w.newStyle(".styl_1", stroke="green", stroke_width=0.6, 
+               stroke_opacity=0.4, fill="green", fill_opacity=0.23, rx=5, ry=5)
+
+    s2 = w.newStyle(".styl_2", stroke="yellow", stroke_width=1.2,
+                    stroke_opacity=0.3, fill="green", fill_opacity=0.35)
+
+    p1 = SvgElement("rect", x=-30, y=-25, width="80", height="10",
+                    fill_opacity=0.5)
+
+    p1.style("styl_1")
+
+    p2 = SvgElement("rect", x=-5, y=0, width=60, height=20,
+                    rx=5, ry=5, fill_opacity=0.8)
+    p2.style(s2)
+
+    w.use(ShapesGroup("g1", p1, p2), 123, 234)
+    print w
+
+    _cmpXml(w, """\
+<svg style="stroke-width: 0px; background-color: #8AC;"
+    xmlns="http://www.w3.org/2000/svg" height="100%" width="100%"
+    preserveaspectratio="xMinYMin meet"
+    xmlns:xlink="http://www.w3.org/1999/xlink" viewbox="0 0 500 500">
+    <defs>
+        <style type="text/css">
+            <![CDATA[
+                .styl_1 {
+                    stroke-opacity: 0.4;
+                    fill-opacity: 0.23;
+                    rx: 5;
+                    ry: 5;
+                    stroke: green;
+                    stroke-width: 0.6;
+                    fill: green;
+                }
+                .styl_2 {
+                    stroke-width: 1.2;
+                    stroke: yellow;
+                    fill-opacity: 0.35;
+                    stroke-opacity: 0.3;
+                    fill: green;
+                }
+            ]]>
+        </style>
+        <g id="g1">
+            <rect fill-opacity="0.5" height="10" width="80" y="-25" x="-30" class="styl_1"/>
+            <rect fill-opacity="0.8" rx="5" ry="5" height="20" width="60" y="0" x="-5"
+                class="styl_2"/>
+        </g>
+    </defs>
+    <use xlink:href="#g1" transform="translate(123, 234)"/>
+</svg>
+""")
