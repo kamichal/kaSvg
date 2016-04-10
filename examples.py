@@ -10,7 +10,6 @@ from kaSvg import SvgWindow, XmlElement, XmlComment, ShapesGroup
 
 def simple_example():
 
-    from kaSvg import SvgWindow, XmlElement
     w = 300; h = 200; rw = 100; rh = 80; fh = 30
     window = SvgWindow(w, h, stroke_width='0.7px', background_color='#8AF')
 

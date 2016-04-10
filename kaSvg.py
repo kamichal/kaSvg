@@ -11,6 +11,9 @@ document containing svg diagrams.
 from random import choice
 from textwrap import TextWrapper
 
+from SvgSanity import SVG_ELEMENT_LIST
+
+_SANITIZE_SVG = True
 _MAX_LINE_WIDTH = 80
 
 def _indentStr(level):
@@ -49,8 +52,9 @@ class XmlElement(object):
                 fixattr = key.replace('_', '-').lower()
                 self._attrs[fixattr] = attributes[key]
 
-    def append(self, other):
-        self._subs.append(other)
+    def append(self, *others):
+        for other in others:
+            self._subs.append(other)
 
     def __repr__(self):
         return self.indRepr(0)
@@ -94,6 +98,10 @@ class XmlElement(object):
 
 class SvgElement(XmlElement):
     def __init__(self, tag, prefix='', **attributes):
+        if _SANITIZE_SVG:
+            if tag not in SVG_ELEMENT_LIST:
+                raise KaSvgError('Svg tag "%s" seems to be invalid. '%tag +
+                'Correct it or set _SANITIZE_SVG to False for disabling this check.')
         XmlElement.__init__(self, tag, prefix, **attributes)
 
     def style(self, *obj_or_id):
@@ -218,12 +226,14 @@ class SvgWindow(XmlElement):
         self.useElementById(xlinkId, x, y, **attributes)
         return element
 
-    def style(self, name, style_string = '', **attrList):
-        if style_string and not attrList:
+    def style(self, name, style_string='', **attrList):
+        if not attrList:
+            attrList = {}
+        if style_string:
             for ch in [' ', '\n', '\r', '\t']:
-                style_string = style_string.replace(ch,'')
-            st = filter(None,style_string.split(";"))
-            attrList = dict(x.split("=") for x in st)
+                style_string = style_string.replace(ch, '')
+            st = filter(None, style_string.split(";"))
+            attrList.update(dict(x.split("=") for x in st))
         for s in self._defs._styles._subs:
             if s.name == name:
                 s.update_style(**attrList)

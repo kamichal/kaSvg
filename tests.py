@@ -25,19 +25,19 @@ def _cmpXml(got, ref):
     assert xml_compare(tree1, tree2, lambda x: sys.stdout.write(x + "\n"))
 
 def test_empty_xml_element():
-    w = SvgElement("id")
+    w = XmlElement("id")
     _cmpXml(w, """<id/>""")
 
 
 def test_simple_xml_element():
-    w = SvgElement("id", node="nodename")
+    w = XmlElement("id", node="nodename")
     _cmpXml(w, """<id node="nodename"/>""")
 
 
 def test_parent_xml_element():
-    w = SvgElement("id", node="nodename")
-    w.append(SvgElement("child1", color="#666"))
-    w.append(SvgElement("child2", color="#123"))
+    w = XmlElement("id", node="nodename")
+    w.append(XmlElement("child1", color="#666"))
+    w.append(XmlElement("child2", color="#123"))
     _cmpXml(w, """\
 <id node="nodename">
     <child1 color= "#666"/>
@@ -54,14 +54,14 @@ height="234"/>''')
 
 
 def test_pretty_xml_1():
-    w = SvgElement("parent", node="nodename", long_key_and_val="this is long value of the field quite very long")
-    em = SvgElement("emb", node="nodename")
-    em.append(SvgElement("mc1", color="#666", st="some"))
-    em.append(SvgElement("mc2", color="#666", st="some"))
-    w.append(SvgElement("child1", color="#666"))
+    w = XmlElement("parent", node="nodename", long_key_and_val="this is long value of the field quite very long")
+    em = XmlElement("emb", node="nodename")
+    em.append(XmlElement("mc1", color="#666", st="some"))
+    em.append(XmlElement("mc2", color="#666", st="some"))
+    w.append(XmlElement("child1", color="#666"))
     w.append(em)
-    w.append(SvgElement("child2"))
-    w.append(SvgElement("child3", color="#123"))
+    w.append(XmlElement("child2"))
+    w.append(XmlElement("child3", color="#123"))
 
     print str(w)
     assert str(w) == """\
@@ -79,16 +79,16 @@ def test_pretty_xml_1():
 
 
 def test_pretty_xml_2():
-    x = SvgElement("id", node="nodename")
-    y = SvgElement("y", node="be")
-    z = SvgElement("z")
-    a = SvgElement("dd", node="tu", text="some text here")
+    x = XmlElement("id", node="nodename")
+    y = XmlElement("y", node="be")
+    z = XmlElement("z")
+    a = XmlElement("dd", node="tu", text="some text here")
 
     a.append(y)
     a.append(y)
     a.append(z)
-    x.append(SvgElement('empty'))
-    x.append(SvgElement('p', text="some text"))
+    x.append(XmlElement('empty'))
+    x.append(XmlElement('p', text="some text"))
     x.append(a)
 
     print x
@@ -112,12 +112,28 @@ def test_window_params():
     w = SvgWindow(123, 234, stroke_width='0px', background_color='#8AC')
 
     _cmpXml(w, '''\
-<svg xmlns="http://www.w3.org/2000/svg" height="234" width="123"
-    xmlns:xlink="http://www.w3.org/1999/xlink" stroke-width="0px"
-    background-color="#8AC"/>
-''')
+    <svg xmlns="http://www.w3.org/2000/svg" height="234" width="123"
+        xmlns:xlink="http://www.w3.org/1999/xlink" stroke-width="0px"
+        background-color="#8AC"/>
+    ''')
 
-
+def test_window_appending():
+    w = SvgWindow(123, 234)
+    a = SvgElement("rect", x=-30, y=-5, width="80", height="20")
+    b = SvgElement("rect", x=0, y=0, width="10", height="10")
+    c = SvgElement("circle",  cx=0, cy=30, r=28, fill="red")
+    
+    w.append(a)
+    w.append(b,c)
+    _cmpXml(w, """\
+    <svg width="123" xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink" height="234">
+        <rect y="-5" width="80" height="20" x="-30"/>
+        <rect y="0" width="10" height="10" x="0"/>
+        <circle cy="30" cx="0" r="28" fill="red"/>
+    </svg>""")
+    
+    
 def test_definitions():
     w = SvgWindow(10, 20)
     k = SvgElement("circle", id="a", cx=0, cy=30, r=28, fill="red", stroke='#851', stroke_width=10, stroke_opacity=0.5)
@@ -330,24 +346,23 @@ def test_dict_mergin():
     a.update(b)
     print a
     assert a['a'] == 9
-    
+
     def dm(self, a_, **kwa):
         a_.update(kwa)
         return a_
     c = {"e":0}
-    
-    a = dm(a,c)
+
+    a = dm(a, c)
     assert a['e'] == 0
-    
+
 def test_style_def_semicolonized_like_css():
     w = SvgWindow(100, 100)
     w.style(".s", '''
-            stroke = "white";
-            fill="black";
+            stroke = "white"; fill="black";
             fill_opacity=0.5;
             ''')
-    w.style(".k", fill = "green")
-    
+    w.style(".k", fill="green")
+
     _cmpXml(w, """\
 <svg width="100" xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink" height="100">
@@ -367,15 +382,15 @@ def test_style_def_semicolonized_like_css():
     </defs>
 </svg>
 """)
-    
+
 def test_style_entry_redefinition():
     w = SvgWindow(100, 100)
-    w.style(".s", stroke = "white")
-    w.style(".k", fill = "black")
-    w.style(".s", stroke = "green")
-    
+    w.style(".s", stroke="white")
+    w.style(".k", fill="black")
+    w.style(".s", stroke="green")
+
     assert w._defs._styles._subs[0]._attrs['stroke'] == "green"
-    
+
     print w
     _cmpXml(w, """\
 <svg width="100" xmlns="http://www.w3.org/2000/svg"
@@ -394,7 +409,7 @@ def test_style_entry_redefinition():
     </defs>
 </svg>
 """)
-    
+
 
 def test_style_definitions():
     svg_window = SvgWindow("100%", "100%", viewBox="0 0 500 500",
