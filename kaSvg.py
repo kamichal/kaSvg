@@ -132,18 +132,16 @@ class SvgDefs(XmlElement):
             render.append('%s}\n' % ind1)
             return ''.join(render)
 
-        def append(self, **attrList):
-            ''' TODO: not sure if it's ok'''
-            # self._attrs = {self._attrs, **attrList}
-            self._attrs = dict(zip(self._attrs, attrList))
+        def update_style(self, **attrList):
+            self._attrs.update(attrList)
 
     class SvgCssContainer(XmlElement):
         '''http://blogs.adobe.com/webplatform/2013/01/08/svg-styling/'''
         def __init__(self):
             XmlElement.__init__(self, 'style', type="text/css")
 
-        def append(self, _SvgStyleDefinitionEntry):
-            self._subs.append(_SvgStyleDefinitionEntry)
+        def append(self, _SvgCssClass):
+            self._subs.append(_SvgCssClass)
 
         def _reprSubelements(self, indent_level):
             if self._subs:
@@ -220,10 +218,20 @@ class SvgWindow(XmlElement):
         self.useElementById(xlinkId, x, y, **attributes)
         return element
 
-    def newStyle(self, name, **attrList):
-        ns = self._defs.SvgCssClass(name, **attrList)
-        self._defs._styles.append(ns)
-        return ns
+    def style(self, name, style_string = '', **attrList):
+        if style_string and not attrList:
+            for ch in [' ', '\n', '\r', '\t']:
+                style_string = style_string.replace(ch,'')
+            st = filter(None,style_string.split(";"))
+            attrList = dict(x.split("=") for x in st)
+        for s in self._defs._styles._subs:
+            if s.name == name:
+                s.update_style(**attrList)
+                break
+        else:
+            s = self._defs.SvgCssClass(name, **attrList)
+            self._defs._styles.append(s)
+        return s
 
 class ShapesGroup(XmlElement):
     def __init__(self, group_ID, *objects, **attributes):

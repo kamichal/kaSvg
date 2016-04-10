@@ -74,12 +74,12 @@ def CSS_example():
                            preserveAspectRatio="xMinYMin meet",
                            style='stroke-width: 0px; background-color: #8AC;')
 
-    svg_window.newStyle(".klasaA",
+    svg_window.style(".klasaA",
                         stroke="green", stroke_width=0.6,
                         stroke_opacity=0.4,
                         fill="green", fill_opacity=0.23, rx=5, ry=5)
 
-    svg_window.newStyle(".klasaA:hover",
+    svg_window.style(".klasaA:hover",
                         stroke="yellow", stroke_width=1.2,
                         stroke_opacity=0.3,
                         fill="green", fill_opacity=0.35)

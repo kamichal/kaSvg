@@ -8,13 +8,13 @@ Created on 1 kwi 2016
 
 import sys
 from os import path as op
-# import pytest
+import pytest
 
 from lxml import etree
 from formencode.doctest_xml_compare import xml_compare
 from tempfile import gettempdir
 
-from kaSvg import SvgWindow, XmlElement, ShapesGroup
+from kaSvg import SvgWindow, XmlElement, SvgElement, ShapesGroup, KaSvgError
 
 def _cmpXml(got, ref):
     print "- " * 5 + "GOT:" + " -" * 20
@@ -23,7 +23,6 @@ def _cmpXml(got, ref):
     tree1 = etree.fromstring(str(got))
     tree2 = etree.fromstring(str(ref))
     assert xml_compare(tree1, tree2, lambda x: sys.stdout.write(x + "\n"))
-
 
 def test_empty_xml_element():
     w = SvgElement("id")
@@ -324,39 +323,95 @@ def test_svg_can_be_stored():
 
     _cmpXml(w, content)
 
+def test_dict_mergin():
+
+    a = {"a":1, "b":2}
+    b = {"e":5, "f":6, "a":9}
+    a.update(b)
+    print a
+    assert a['a'] == 9
+    
+    def dm(self, a_, **kwa):
+        a_.update(kwa)
+        return a_
+    c = {"e":0}
+    
+    a = dm(a,c)
+    assert a['e'] == 0
+    
+def test_style_def_semicolonized_like_css():
+    w = SvgWindow(100, 100)
+    w.style(".s", '''
+            stroke = "white";
+            fill="black";
+            fill_opacity=0.5;
+            ''')
+    w.style(".k", fill = "green")
+    
+    _cmpXml(w, """\
+<svg width="100" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" height="100">
+    <defs>
+        <style type="text/css">
+            <![CDATA[
+                .s {
+                    stroke: "white";
+                    fill: "black";
+                    fill-opacity: 0.5;
+                }
+                .k {
+                    fill: green;
+                }
+            ]]>
+        </style>
+    </defs>
+</svg>
+""")
+    
+def test_style_entry_redefinition():
+    w = SvgWindow(100, 100)
+    w.style(".s", stroke = "white")
+    w.style(".k", fill = "black")
+    w.style(".s", stroke = "green")
+    
+    assert w._defs._styles._subs[0]._attrs['stroke'] == "green"
+    
+    print w
+    _cmpXml(w, """\
+<svg width="100" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" height="100">
+    <defs>
+        <style type="text/css">
+            <![CDATA[
+                .s {
+                    stroke: green;
+                }
+                .k {
+                    fill: black;
+                }
+            ]]>
+        </style>
+    </defs>
+</svg>
+""")
+    
 
 def test_style_definitions():
     svg_window = SvgWindow("100%", "100%", viewBox="0 0 500 500",
                            preserveAspectRatio="xMinYMin meet",
                            style='stroke-width: 0px; background-color: #8AC;')
 
-    svg_window.newStyle(".klasaA",
-                        stroke="green", stroke_width=0.6,
-                        stroke_opacity=0.4,
-                        fill="green", fill_opacity=0.23, rx=5, ry=5)
+    svg_window.style(".klasaA", 'stroke="green"; stroke_width=0.6')
 
-    svg_window.newStyle(".klasaA:hover",
-                        stroke="yellow", stroke_width=1.2,
-                        stroke_opacity=0.3,
-                        fill="green", fill_opacity=0.35)
+    svg_window.style(".klasaA:hover", stroke="yellow", stroke_width=1.2)
 
     kolko = SvgElement("circle", cx=0, cy=30, r=53)
 
-    prostokat = SvgElement("rect", x=-30, y=-25,
-                           width="80", height="10",
-                           fill_opacity=0.5)
+    prostokat = SvgElement("rect", x=-30, y=-25, width="80", height="10")
 
-    prostokat2 = SvgElement("rect", x=-5, y=0, width=60, height=20,
-                            rx=5, ry=5,
-                            fill_opacity=0.8)
+    tekstt = SvgElement("text", x="0", y="15", fill="red", text="olRajt!")
 
-    prostokat3 = SvgElement("rect", x=-40, y=30, width="80", height="70")
-
-    tekstt = SvgElement("text", x="0", y="15", fill="red", text="?Hija")
-    tekstt2 = SvgElement("text", x="-40", y="37", fill="black", text="Python")
-
-    grupa1 = ShapesGroup("grupa1", kolko, prostokat, prostokat2,
-                         prostokat3, tekstt, tekstt2, Class="klasaA")
+    grupa1 = ShapesGroup("grupa1", kolko, prostokat, tekstt, Class="klasaA")
 
     alink = SvgElement("a", id="tynlik")
     alink._attrs["xlink:href"] = "TestOtherUseCase.svg"
@@ -366,11 +421,6 @@ def test_style_definitions():
     svg_window.use(grupa1, 45, 130)
     svg_window.use(grupa1, 180, 100, transform="scale(0.6) rotate(45)")
     svg_window.use(grupa1, 55, 25, transform="scale(0.4) rotate(-15.4) translate(50, 50)")
-    svg_window.use(grupa1, 80, 90, transform="scale(0.7) rotate(15.4) translate(50, 50)")
-    svg_window.use(grupa1, 220, 80)
-
-    tekstt3 = SvgElement("text", x="0", y="17", text="SVG", Class="klasaA")
-    svg_window.append(tekstt3)
 
     ref = """\
 <svg style="stroke-width: 0px; background-color: #8AC;"
@@ -381,49 +431,30 @@ def test_style_definitions():
         <style type="text/css">
             <![CDATA[
                 .klasaA {
-                    stroke-opacity: 0.4;
-                    fill-opacity: 0.23;
-                    rx: 5;
-                    ry: 5;
-                    stroke: green;
+                    stroke: "green";
                     stroke-width: 0.6;
-                    fill: green;
                 }
                 .klasaA:hover {
-                    stroke-width: 1.2;
                     stroke: yellow;
-                    fill-opacity: 0.35;
-                    stroke-opacity: 0.3;
-                    fill: green;
+                    stroke-width: 1.2;
                 }
             ]]>
         </style>
         <g class="klasaA" id="grupa1">
             <circle cy="30" cx="0" r="53"/>
-            <rect y="-25" width="80" fill-opacity="0.5" x="-30" height="10"/>
-            <rect fill-opacity="0.8" rx="5" ry="5" height="20" width="60" y="0" x="-5"/>
-            <rect y="30" width="80" x="-40" height="70"/>
-            <text y="15" x="0" fill="red">
-                ?Hija
-            </text>
-            <text y="37" x="-40" fill="black">
-                Python
+            <rect y="-25" width="80" height="10" x="-30"/>
+            <text y="15" fill="red" x="0">
+                olRajt!
             </text>
         </g>
     </defs>
     <a xlink:href="TestOtherUseCase.svg" id="tynlik">
-        <rect y="50" width="60" x="15" class="klasaA" height="20"/>
+        <rect y="50" width="60" height="20" class="klasaA" x="15"/>
     </a>
     <use xlink:href="#grupa1" transform="translate(45, 130)"/>
     <use xlink:href="#grupa1" transform="translate(180, 100) scale(0.6) rotate(45)"/>
     <use xlink:href="#grupa1" transform="translate(55, 25) scale(0.4) rotate(-15.4)
         translate(50, 50)"/>
-    <use xlink:href="#grupa1" transform="translate(80, 90) scale(0.7) rotate(15.4)
-        translate(50, 50)"/>
-    <use xlink:href="#grupa1" transform="translate(220, 80)"/>
-    <text y="17" class="klasaA" x="0">
-        SVG
-    </text>
 </svg>
 """
     _cmpXml(svg_window, ref)
@@ -434,16 +465,16 @@ def test_styles():
                   preserveAspectRatio="xMinYMin meet",
                   style='stroke-width: 0px; background-color: #8AC;')
 
-    w.newStyle(".styl_1", stroke="green", stroke_width=0.6, 
+    w.style(".styl_1", stroke="green", stroke_width=0.6,
                stroke_opacity=0.4, fill="green", fill_opacity=0.23, rx=5, ry=5)
-
-    s2 = w.newStyle(".styl_2", stroke="yellow", stroke_width=1.2,
-                    stroke_opacity=0.3, fill="green", fill_opacity=0.35)
 
     p1 = SvgElement("rect", x=-30, y=-25, width="80", height="10",
                     fill_opacity=0.5)
 
     p1.style("styl_1")
+
+    s2 = w.style(".styl_2", stroke="yellow", stroke_width=1.2,
+                    stroke_opacity=0.3, fill="green", fill_opacity=0.35)
 
     p2 = SvgElement("rect", x=-5, y=0, width=60, height=20,
                     rx=5, ry=5, fill_opacity=0.8)
